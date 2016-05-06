@@ -49,9 +49,9 @@
 
 
 
-#define DEF_UART_BASE             UART2_BASE
+#define DEF_UART_BASE             UART3_BASE
 #define DEF_SYSCTL_PERIPH_UART    SYSCTL_PERIPH_UART2
-#define DEF_GPIO_PORT_BASE        GPIO_PORTD_BASE
+#define DEF_GPIO_PORT_BASE        GPIO_PORTJ_BASE
 #define DEF_UART_GPIO_PIN         GPIO_PIN_4| GPIO_PIN_5
 #define DEF_INT_UART              INT_UART2			
 

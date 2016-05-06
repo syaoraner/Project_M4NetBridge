@@ -1592,11 +1592,11 @@ void netSetInit(void)
     g_stSysInf.ucNetCfgBuf[21] = 0xf3;
     
     g_stSysInf.ucNetCfgBuf[22]=1;//手动设置IP地址
-    //IP地址 192.168.1.26
+    //IP地址 192.168.1.168
     g_stSysInf.ucNetCfgBuf[23]=0xc0;//IP
     g_stSysInf.ucNetCfgBuf[24]=0xa8;
-    g_stSysInf.ucNetCfgBuf[25]=0x01;
-    g_stSysInf.ucNetCfgBuf[26]=0xae;//ae4e
+    g_stSysInf.ucNetCfgBuf[25]=0x03;
+    g_stSysInf.ucNetCfgBuf[26]=0xa8;
     //掩&nbsp;&nbsp;码
     g_stSysInf.ucNetCfgBuf[27]=0xff;
     g_stSysInf.ucNetCfgBuf[28]=0xff;
@@ -1618,14 +1618,14 @@ void netSetInit(void)
     g_stSysInf.ucNetCfgBuf[38]=0xc0;
     g_stSysInf.ucNetCfgBuf[39]=0xa8;
     g_stSysInf.ucNetCfgBuf[40]=0x01;
-    g_stSysInf.ucNetCfgBuf[41]=0x3f;//1e  64
+    g_stSysInf.ucNetCfgBuf[41]=0x3f;
     ///服务器通信端口
     g_stSysInf.ucNetCfgBuf[42]=0x1c;
     g_stSysInf.ucNetCfgBuf[43]=0x84;
     //通信模式
     g_stSysInf.ucNetCfgBuf[44]=0;
     
-    g_stSysInf.ucNetCfgBuf[45]=7;//波特率 长安铃木为3///PLC为7
+    g_stSysInf.ucNetCfgBuf[45]=7;//波特率 长安铃木为3///PLC为7，见BaudRate_sz
     g_stSysInf.ucNetCfgBuf[46]=8;//数据位
     g_stSysInf.ucNetCfgBuf[47]=0;//效验位
     g_stSysInf.ucNetCfgBuf[48]=1;///停止位
@@ -1639,14 +1639,14 @@ void netSetInit(void)
     
     g_stSysInf.ucNetCfgBuf[54]=0;///是否发送多机通讯位
     g_stSysInf.ucNetCfgBuf[55]=0;//是否控制RTS信号
-    
-    g_stSysInf.ucNetCfgBuf[56]=0xc0;           ///PLC服务器IP 192.168.1.61
-    g_stSysInf.ucNetCfgBuf[57]=0xa8;
-    g_stSysInf.ucNetCfgBuf[58]=0x01;
-    g_stSysInf.ucNetCfgBuf[59]=0x3d;
-    
-    g_stSysInf.ucNetCfgBuf[60]=0x07;         ///PLC服务器端口号：2000
-    g_stSysInf.ucNetCfgBuf[61]=0xd0;
+    //未使用
+//    g_stSysInf.ucNetCfgBuf[56]=0xc0;           ///PLC服务器IP 192.168.1.61
+//    g_stSysInf.ucNetCfgBuf[57]=0xa8;
+//    g_stSysInf.ucNetCfgBuf[58]=0x01;
+//    g_stSysInf.ucNetCfgBuf[59]=0x3d;
+//    
+//    g_stSysInf.ucNetCfgBuf[60]=0x07;         ///PLC服务器端口号：2000
+//    g_stSysInf.ucNetCfgBuf[61]=0xd0;
     
   }
 }

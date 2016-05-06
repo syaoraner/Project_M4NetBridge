@@ -27,10 +27,10 @@ void UARTInit(void)
 {     
   SysCtlPeripheralEnable(DEF_SYSCTL_PERIPH_UART);
   SysCtlPeripheralEnable(SYSCTL_PERIPH_GPION);   
-  GPIOPinTypeGPIOOutput(GPIO_PORTN_BASE, GPIO_PIN_2);		
-  GPIOPinConfigure(GPIO_PD4_U2RX);
-  GPIOPinConfigure(GPIO_PD5_U2TX);
-  GPIOPinTypeUART(DEF_GPIO_PORT_BASE, GPIO_PIN_4|GPIO_PIN_5);  
+  GPIOPinTypeGPIOOutput(GPIO_PORTN_BASE, GPIO_PIN_4);		
+  GPIOPinConfigure(GPIO_PJ0_U3RX);
+  GPIOPinConfigure(GPIO_PJ1_U3TX);
+  GPIOPinTypeUART(DEF_GPIO_PORT_BASE, GPIO_PIN_0|GPIO_PIN_1);  
   UARTConfigSetExpClk(DEF_UART_BASE,
                       g_stSysInf.ulSysClock ,
                       115200,

@@ -19,6 +19,6 @@
 @REM 
 
 
-"D:\Program Files\IAR Systems\Embedded Workbench 7.0\common\bin\cspybat" "D:\Program Files\IAR Systems\Embedded Workbench 7.0\arm\bin\armproc.dll" "D:\Program Files\IAR Systems\Embedded Workbench 7.0\arm\bin\armsim2.dll"  %1 --plugin "D:\Program Files\IAR Systems\Embedded Workbench 7.0\arm\bin\armbat.dll" --backend -B "--endian=little" "--cpu=Cortex-M4F" "--fpu=VFPv4" "-p" "D:\Program Files\IAR Systems\Embedded Workbench 7.0\arm\CONFIG\debugger\TexasInstruments\TM4C1294NCPDT.ddf" "--semihosting" "--device=TM4C1294NCPDT" "--multicore_nr_of_cores=1" 
+"D:\Program Files\IAR Systems\Embedded Workbench 7.0\common\bin\cspybat" "D:\Program Files\IAR Systems\Embedded Workbench 7.0\arm\bin\armproc.dll" "D:\Program Files\IAR Systems\Embedded Workbench 7.0\arm\bin\armjlink.dll"  %1 --plugin "D:\Program Files\IAR Systems\Embedded Workbench 7.0\arm\bin\armbat.dll" --backend -B "--endian=little" "--cpu=Cortex-M4F" "--fpu=VFPv4" "-p" "D:\Program Files\IAR Systems\Embedded Workbench 7.0\arm\CONFIG\debugger\TexasInstruments\TM4C1294NCPDT.ddf" "--semihosting" "--device=TM4C1294NCPDT" "--drv_communication=USB0" "--jlink_speed=auto" "--jlink_initial_speed=1000" "--jlink_reset_strategy=0,0" "--drv_catch_exceptions=0x000" "--drv_swo_clock_setup=72000000,0,2000000" 
 
 

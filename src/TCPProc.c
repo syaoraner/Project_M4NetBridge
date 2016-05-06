@@ -11,27 +11,31 @@ unsigned short Ser_RX_len = 0;
 unsigned char AC_DC = 0;
 void tcpLwipInit()
 {
+  //读MAC
   g_stSysInf.ucMacAddr[0] = g_stSysInf.ucNetCfgBuf[16];//0x0;//((ulUser0 >>  0) & 0xff);
   g_stSysInf.ucMacAddr[1] = g_stSysInf.ucNetCfgBuf[17];//0x9;//((ulUser0 >>  8) & 0xff);
   g_stSysInf.ucMacAddr[2] = g_stSysInf.ucNetCfgBuf[18];//0xf6;//((ulUser0 >> 16) & 0xff);
   g_stSysInf.ucMacAddr[3] = g_stSysInf.ucNetCfgBuf[19];//0x2;//((ulUser1 >>  0) & 0xff);
   g_stSysInf.ucMacAddr[4] = g_stSysInf.ucNetCfgBuf[20];//0xfc;//((ulUser1 >>  8) & 0xff);
   g_stSysInf.ucMacAddr[5] = g_stSysInf.ucNetCfgBuf[21];//0xa2;//((ulUser1 >> 16) & 0xff);   
-  
+  //读IP
   IP4_ADDR(&g_stSysInf.stSerMCenAddr,g_stSysInf.ucNetCfgBuf[38],g_stSysInf.ucNetCfgBuf[39],\
     g_stSysInf.ucNetCfgBuf[40],g_stSysInf.ucNetCfgBuf[41]); 
-  IP4_ADDR(&g_stSysInf.stSerPLCAddr,g_stSysInf.ucNetCfgBuf[56],g_stSysInf.ucNetCfgBuf[57],\
-    g_stSysInf.ucNetCfgBuf[58],g_stSysInf.ucNetCfgBuf[59]);
+//PLC未使用
+//  IP4_ADDR(&g_stSysInf.stSerPLCAddr,g_stSysInf.ucNetCfgBuf[56],g_stSysInf.ucNetCfgBuf[57],\
+//    g_stSysInf.ucNetCfgBuf[58],g_stSysInf.ucNetCfgBuf[59]);
   IP4_ADDR(&g_stSysInf.stLocalAddr,g_stSysInf.ucNetCfgBuf[23],g_stSysInf.ucNetCfgBuf[24],\
     g_stSysInf.ucNetCfgBuf[25],g_stSysInf.ucNetCfgBuf[26]);
   
   
   //读取网络通讯端口
   g_stSysInf.usSerMCPort	= (unsigned short)g_stSysInf.ucNetCfgBuf[42]<<8 | g_stSysInf.ucNetCfgBuf[43];
-  g_stSysInf.usSerPLCPort	= (unsigned short)g_stSysInf.ucNetCfgBuf[60]<<8 | g_stSysInf.ucNetCfgBuf[61];
+//PLC未使用
+//  g_stSysInf.usSerPLCPort	= (unsigned short)g_stSysInf.ucNetCfgBuf[60]<<8 | g_stSysInf.ucNetCfgBuf[61];
   g_stSysInf.usLocalPort	= (unsigned short)g_stSysInf.ucNetCfgBuf[36]<<8 | g_stSysInf.ucNetCfgBuf[37];
   
   //初始化lwIP，设置IP地址
+  //配置协议栈
   lwIPInit(g_stSysInf.ulSysClock,g_stSysInf.ucMacAddr, GetNetIPConfig(), GetNetMaskConfig(), GetNetGwConfig(), IPADDR_USE_STATIC); //设置LWIP
   //  LocatorMACAddrSet(g_stSysInf.ucMacAddr);  
 }
