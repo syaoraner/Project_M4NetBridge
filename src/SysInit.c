@@ -8,7 +8,6 @@ void Init()
   IntMasterDisable();                      
   //打开看门狗,设置看门狗装载值
   watchDogInit(1000);
-  SysCtlPeripheralDisable(SYSCTL_PERIPH_GPIOM);
   //MAC和PHY使能，在lwip_init()中有使能，这里可以不用
   SysCtlPeripheralEnable(SYSCTL_PERIPH_EPHY0);
   SysCtlPeripheralEnable(SYSCTL_PERIPH_EMAC0);
@@ -17,29 +16,35 @@ void Init()
   GPIOPinConfigure(GPIO_PF0_EN0LED0);
   GPIOPinConfigure(GPIO_PF1_EN0LED2);
   GPIOPinTypeEthernetLED(GPIO_PORTF_BASE, GPIO_PIN_1 | GPIO_PIN_0);
+  
+  //初始化GPIO，PA0为工作状态指示灯
+  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+  GPIOPinWrite(GPIO_PORTA_BASE,GPIO_PIN_0,0x00);
+  GPIOPadConfigSet(GPIO_PORTA_BASE, GPIO_PIN_0,
+                   GPIO_STRENGTH_8MA,
+                   GPIO_PIN_TYPE_STD);
+  GPIOPinTypeGPIOOutput(GPIO_PORTA_BASE,GPIO_PIN_0);  
+  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
+  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
+  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
+  //未使用
+  SysCtlPeripheralDisable(SYSCTL_PERIPH_GPIOG);
+  //指示灯控制脚配置
+  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOH);
+  GPIOPinWrite(GPIO_PORTH_BASE,GPIO_PIN_2||GPIO_PIN_3,0x00);
+  GPIOPadConfigSet(GPIO_PORTH_BASE, GPIO_PIN_0,
+                   GPIO_STRENGTH_8MA,
+                   GPIO_PIN_TYPE_STD);
+  GPIOPinTypeGPIOOutput(GPIO_PORTH_BASE,GPIO_PIN_2||GPIO_PIN_3);
+  
+  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOJ);
+  SysCtlPeripheralDisable(SYSCTL_PERIPH_GPIOM);
   //外部看门狗喂狗输出,未使用
 //  GPIOPadConfigSet(GPIO_PORTM_BASE, GPIO_PIN_7,
 //                   GPIO_STRENGTH_8MA,
 //                   GPIO_PIN_TYPE_STD);
 //  GPIOPinTypeGPIOOutput(GPIO_PORTM_BASE,GPIO_PIN_7);
-  
-  //初始化GPIO，PA0为工作状态指示灯
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
-  GPIOPinWrite(GPIO_PORTA_BASE,GPIO_PIN_0,0x00);
-  
-  GPIOPadConfigSet(GPIO_PORTA_BASE, GPIO_PIN_0,
-                   GPIO_STRENGTH_8MA,
-                   GPIO_PIN_TYPE_STD);
-  GPIOPinTypeGPIOOutput(GPIO_PORTA_BASE,GPIO_PIN_0);
-  
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);    
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC); 
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);   
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
-  //未使用
-  SysCtlPeripheralDisable(SYSCTL_PERIPH_GPIOG);
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOH);
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOJ);
   //未使用
 //  SysCtlPeripheralEnable(SYSCTL_PERIPH_UART0);
 //  SysCtlPeripheralEnable(SYSCTL_PERIPH_UART1);

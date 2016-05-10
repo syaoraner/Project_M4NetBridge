@@ -2,7 +2,11 @@
 unsigned char flag_c2000 = 0;
 unsigned char TCP_Rec_PLC = 0;
 
-
+//-------------------------------------------------------------------------------
+//定时监测网口状态
+//如果网口连接正常，则定时监测网络连接状态，一定时间网络连接状态为COLOSE或者WAITE则进行重连；
+//如果网口连接异常，则直接重连；
+//-------------------------------------------------------------------------------
 void TCP_Relink(void)
 {
   unsigned char ucLinkState = 1;
@@ -42,12 +46,12 @@ void TCP_Relink(void)
   if(ucLinkState == 0x01)
   {
     TCP_MCenter_Relink(g_stSysInf.ucMCReLinkFlag);
-    TCP_PLC_Relink(g_stSysInf.ucPLCReLinkFlag);
+//    TCP_PLC_Relink(g_stSysInf.ucPLCReLinkFlag);
   }
   else
   {
     TCP_MCenter_Relink(1);
-    TCP_PLC_Relink(1);
+//    TCP_PLC_Relink(1);
   }
 }
 

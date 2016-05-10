@@ -180,9 +180,12 @@ void lwIPHostTimerHandler(void)
 
 void main()
 {
+  unsigned char ucLedBlink=0x01;
   Init();
   while(1)
   {
+    ucLedBlink=~ucLedBlink;
+    GPIOPinWrite(GPIO_PORTA_BASE,GPIO_PIN_0,ucLedBlink);
     watchDogFeed();    
     TCP_Relink();
     DataProcess();     

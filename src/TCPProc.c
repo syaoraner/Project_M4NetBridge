@@ -18,12 +18,13 @@ void tcpLwipInit()
   g_stSysInf.ucMacAddr[3] = g_stSysInf.ucNetCfgBuf[19];//0x2;//((ulUser1 >>  0) & 0xff);
   g_stSysInf.ucMacAddr[4] = g_stSysInf.ucNetCfgBuf[20];//0xfc;//((ulUser1 >>  8) & 0xff);
   g_stSysInf.ucMacAddr[5] = g_stSysInf.ucNetCfgBuf[21];//0xa2;//((ulUser1 >> 16) & 0xff);   
-  //读IP
+  //设置server IP
   IP4_ADDR(&g_stSysInf.stSerMCenAddr,g_stSysInf.ucNetCfgBuf[38],g_stSysInf.ucNetCfgBuf[39],\
     g_stSysInf.ucNetCfgBuf[40],g_stSysInf.ucNetCfgBuf[41]); 
 //PLC未使用
 //  IP4_ADDR(&g_stSysInf.stSerPLCAddr,g_stSysInf.ucNetCfgBuf[56],g_stSysInf.ucNetCfgBuf[57],\
 //    g_stSysInf.ucNetCfgBuf[58],g_stSysInf.ucNetCfgBuf[59]);
+  //设置client IP
   IP4_ADDR(&g_stSysInf.stLocalAddr,g_stSysInf.ucNetCfgBuf[23],g_stSysInf.ucNetCfgBuf[24],\
     g_stSysInf.ucNetCfgBuf[25],g_stSysInf.ucNetCfgBuf[26]);
   
@@ -35,16 +36,19 @@ void tcpLwipInit()
   g_stSysInf.usLocalPort	= (unsigned short)g_stSysInf.ucNetCfgBuf[36]<<8 | g_stSysInf.ucNetCfgBuf[37];
   
   //初始化lwIP，设置IP地址
-  //配置协议栈
+  //配置协议栈，
   lwIPInit(g_stSysInf.ulSysClock,g_stSysInf.ucMacAddr, GetNetIPConfig(), GetNetMaskConfig(), GetNetGwConfig(), IPADDR_USE_STATIC); //设置LWIP
   //  LocatorMACAddrSet(g_stSysInf.ucMacAddr);  
 }
 
-
+//-------------------------------------------------------------------------------
+//client初始化并重连server
+//-------------------------------------------------------------------------------
 void TCP_MClient_Init(void)
 {
   Neterrcnt = 0;
   link_fail = 0;
+  //设置服务器IP
   IP4_ADDR(&g_stSysInf.stSerMCenAddr,g_stSysInf.ucNetCfgBuf[38],g_stSysInf.ucNetCfgBuf[39],g_stSysInf.ucNetCfgBuf[40],g_stSysInf.ucNetCfgBuf[41]);
   g_stSysInf.MCClipcb = NULL;
   g_stSysInf.MCClipcb = tcp_new();                        
@@ -57,16 +61,19 @@ void TCP_MClient_Init(void)
 void TCP_MClient_Close(void)
 {
   tcp_abort(g_stSysInf.MCClipcb);
-  tcp_close(g_stSysInf.MCClipcb); 
+  //tcp_close(g_stSysInf.MCClipcb); //上一句已经memp_free
 }
 err_t TCPMCli_Connected(void *arg,struct tcp_pcb *pcb,err_t err)
 {
   unsigned char req_temp;
-  unsigned char TCP_REQ_buf[14] = {0xfa,0x07,0x16,0x02,0xfa,0x02};///,0x06,0x05,0x04,0x03,0x02,0x01,0xfa,0xff
+//0xfa,0x07,0x16,0x02,0xfa,0x02,0x06,0x05,0x04,0x03,0x02,0x01,0xfa,0xff  C2000控件协议帧头，一共14个字节中间6个字节为MAC
+//  上电请求连接时发出
+  unsigned char TCP_REQ_buf[14] = {0xfa,0x07,0x16,0x02,0xfa,0x02};
   Neterrcnt = 0;
   IsNetInit = 1;
   Mcenter_MODEL = 1;
   g_stSysInf.ucTCPConFlag = 1;
+  //建立连接时指定接收数据时调用的函数
   tcp_recv(pcb,TCPMCli_recv);    
   for(req_temp=0;req_temp<6;req_temp++)
   {
@@ -77,6 +84,7 @@ err_t TCPMCli_Connected(void *arg,struct tcp_pcb *pcb,err_t err)
   TCP_REQ_buf[13]=0xff;
   
   tcp_write(pcb, TCP_REQ_buf, 14, 1);
+  //三次握手最后一次客户端回ACK，顺带C2000协议14个字节
   tcp_output(pcb);
   
   return ERR_OK;
@@ -97,7 +105,7 @@ err_t TCPMCli_recv(void *arg, struct tcp_pcb *pcb,struct pbuf *p,err_t err)
       pucData = p->payload;
       tcp_recved(pcb, p->tot_len);
       
-      if(p->tot_len > 0)
+      if(p->tot_len > 0)        //收到的字节数不为0
       {        
         memset(g_stSysInf.ucTcpRecBuf,0x00,1024);
         g_stSysInf.usTcpRecLen = 0;
