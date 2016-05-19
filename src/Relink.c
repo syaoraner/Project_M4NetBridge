@@ -1,6 +1,5 @@
 #include "config.h"
 unsigned char flag_c2000 = 0;
-unsigned char TCP_Rec_PLC = 0;
 
 //-------------------------------------------------------------------------------
 //¶¨Ê±¼à²âÍø¿Ú×´Ì¬
@@ -46,12 +45,10 @@ void TCP_Relink(void)
   if(ucLinkState == 0x01)
   {
     TCP_MCenter_Relink(g_stSysInf.ucMCReLinkFlag);
-//    TCP_PLC_Relink(g_stSysInf.ucPLCReLinkFlag);
   }
   else
   {
     TCP_MCenter_Relink(1);
-//    TCP_PLC_Relink(1);
   }
 }
 
@@ -73,28 +70,3 @@ void TCP_MCenter_Relink(unsigned char ucRelinkFlag)
 //    IntMasterEnable();
   }
 }
-
-void TCP_PLC_Relink(unsigned char ucRelinkFlag)
-{
-  if(1 == ucRelinkFlag)
-  {
-    g_stSysInf.ucPLCReLinkFlag = 0;
-    g_stSysInf.ucTCPPLCConFlag = 0;
-    wdogFeed( fw_flag );
-    IntMasterDisable();     
-    TCP_CliePLC_Close();
-    IntMasterEnable();  
-    
-    wdogFeed( fw_flag );
-    SysCtlDelay(g_stSysInf.ulSysClock/30);//delay 100ms
-    wdogFeed( fw_flag );
-    SysCtlDelay(g_stSysInf.ulSysClock/30);//delay 100ms
-    
-    wdogFeed( fw_flag );
-    IntMasterDisable();
-    TCP_PLCClient_Init();
-    IntMasterEnable();
-  }
-}
-
-

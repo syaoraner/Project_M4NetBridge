@@ -73,7 +73,7 @@ err_t TCPMCli_Connected(void *arg,struct tcp_pcb *pcb,err_t err)
   IsNetInit = 1;
   Mcenter_MODEL = 1;
   g_stSysInf.ucTCPConFlag = 1;
-  //建立连接时指定接收数据时调用的函数
+  //建立连接时指定接收数据时的回调函数
   tcp_recv(pcb,TCPMCli_recv);    
   for(req_temp=0;req_temp<6;req_temp++)
   {
@@ -162,82 +162,3 @@ err_t TCPMCli_recv(void *arg, struct tcp_pcb *pcb,struct pbuf *p,err_t err)
   }
   return ERR_OK;
 }
-
-
-void TCP_PLCClient_Init(void)
-{
-  IP4_ADDR(&g_stSysInf.stSerPLCAddr,g_stSysInf.ucNetCfgBuf[56],g_stSysInf.ucNetCfgBuf[57],g_stSysInf.ucNetCfgBuf[58],g_stSysInf.ucNetCfgBuf[59]);
-  g_stSysInf.PLCClipcb = NULL;
-  g_stSysInf.PLCClipcb = tcp_new();                        
-  tcp_bind(g_stSysInf.PLCClipcb,IP_ADDR_ANY,2000);  ////&svripaddr   g_stSysInf.usLocalPort
-  net_err = tcp_connect(g_stSysInf.PLCClipcb,&g_stSysInf.stSerPLCAddr,g_stSysInf.usSerPLCPort,TCP_CliePLC_Connected);  
-  PLCIsNetInit = 0;
-  PLCNeterrcnt = 0;
-  TCP_Rec_PLC_fail = 0;
-}
-
-
-
-err_t TCP_PLCCliRec(void *arg, struct tcp_pcb *pcb,struct pbuf *p,err_t err)
-{
-  unsigned char	*pucData;
-  unsigned short i = 0;
-  if(err == ERR_OK )
-  {
-    if(p != NULL )
-    {
-      pucData = p->payload;
-      tcp_recved(pcb, p->tot_len);  
-      if(p->tot_len > 0)
-      {    
-        memset(g_stSysInf.ucTcpPLCRecBuf,0x00,1024);
-        g_stSysInf.usTcpPLCRecLen = 0;
-        for(i = 0; i < (p->tot_len); i++)
-        {
-          g_stSysInf.ucTcpPLCRecBuf[g_stSysInf.usTcpPLCRecLen++] = pucData[i];
-        }
-        CacheInputProc(&g_stCacheProc,&g_stSysInf,g_stSysInf.usTcpPLCRecLen,1);
-      }
-      pbuf_free(p); 
-    }
-  }
-  return ERR_OK;
-}
-
-err_t TCP_CliePLC_Connected(void *arg,struct tcp_pcb *pcb,err_t err)
-{
-  PLCNeterrcnt = 0;
-  PLCIsNetInit = 1;
-  PLC_MODEL = 1;
-  g_stSysInf.ucTCPPLCConFlag = 1;
-  tcp_recv(pcb,TCP_PLCCliRec);    
-  return ERR_OK;
-}
-
-void TCP_CliePLC_Send(unsigned char *data,unsigned long numhf)
-{
-  unsigned long s_tem = 4;
-  unsigned long s_len = 4;
-  unsigned char s_buf[1024];
-  s_buf[0] = 0xbe;
-  s_buf[1] = 0xeb;
-  s_buf[2] = 0xbe;
-  s_buf[3] = 0xeb;
-  if(numhf>0)
-  {
-    for(s_tem = 4;s_tem < numhf+1;s_tem++)
-    {
-      s_buf[s_len] = data[s_tem];
-      s_len ++;      
-    }
-    tcp_write(g_stSysInf.PLCClipcb, s_buf,s_len,0);
-    tcp_output(g_stSysInf.PLCClipcb);    
-  }
-}
-
-void TCP_CliePLC_Close(void)
-{	
-  tcp_abort(g_stSysInf.PLCClipcb);
-  tcp_close(g_stSysInf.PLCClipcb);   
-}
-

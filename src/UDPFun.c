@@ -50,6 +50,7 @@ void UPS_UDP_Init(void)
     //  udp_bind(UpsUdpPcb,IP_ADDR_ANY,7373);  
     udp_bind(UpsUdpPcb,IP_ADDR_ANY,21678);   /* 绑定本地地址&svripaddr */
     ///  UDP_Connect_RX = udp_connect(UpsUdpPcb,&svripaddr,21677);    /* 连接远程主机 */
+//    Set a receive callback for a UDP PCB
     udp_recv(UpsUdpPcb,UDP_JHJ_Receive,NULL);     
 }
 

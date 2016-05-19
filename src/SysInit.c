@@ -65,8 +65,6 @@ void Init()
   
   ///TCP初始化
   TCP_MClient_Init();
-//  PLC未使用
-//  TCP_PLCClient_Init();
   
   ////UDP初始化
   UPS_UDP_Init(); 

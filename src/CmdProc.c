@@ -4,7 +4,6 @@ unsigned char UART_BUSY_flag = 0;
 unsigned int d_con = 0;
 unsigned char ds_sj_dao = 0;
 unsigned char ds_sj_dao_021S = 0;
-unsigned char UART_PLC_right= 0;
 unsigned char TCP_Return_Flag = 0;
 unsigned char TCP_TxBuf[1024] = {0};
 unsigned short TCP_TxLen = 0;
@@ -16,6 +15,7 @@ void CacheInputProc(StCacheProc *ucDstAddr,StSysInf *ucSrcAddr,
   {
     return;
   }
+//  网口接收数据存入环形buf
   if(ucDataType == 0)
   {
     ucDstAddr->usMCRxLen[ucDstAddr->ucMCInIndex] = usCopyLen - 3;
@@ -28,18 +28,7 @@ void CacheInputProc(StCacheProc *ucDstAddr,StSysInf *ucSrcAddr,
     memset(g_stSysInf.ucTcpRecBuf,0x00,1024);
     g_stSysInf.usTcpRecLen = 0;
   }
-  else if(ucDataType == 1)
-  {
-    ucDstAddr->usPLCRxLen[ucDstAddr->ucPLCInIndex] = usCopyLen;
-    memcpy(ucDstAddr->ucPLCRxBuf[ucDstAddr->ucPLCInIndex],ucSrcAddr->ucTcpPLCRecBuf,usCopyLen);
-    ucDstAddr->ucPLCInIndex++;
-    if(ucDstAddr->ucPLCInIndex >= MaxNum)
-    {
-      ucDstAddr->ucPLCInIndex = 0;
-    }
-    memset(g_stSysInf.ucTcpPLCRecBuf,0x00,1024);
-    g_stSysInf.usTcpPLCRecLen = 0;
-  }
+//  UART接收数据存入环形buf
   else if(ucDataType == 2)
   {
     ucDstAddr->usUartRxLen[ucDstAddr->ucUartInIndex] = usCopyLen;
@@ -54,32 +43,31 @@ void CacheInputProc(StCacheProc *ucDstAddr,StSysInf *ucSrcAddr,
   }
 }
 
+//--------------------------------------------------------------------------------
+//用于环形buf搬数据
+//@param  *ucDstAddr      目标地址指针
+//@param  *ucSrcAddr      源地址指针
+//@param  ucDataType      数据传输的方向 0——MC到M4，2——M4回发MC
+//--------------------------------------------------------------------------------
 void CacheOutputProc(StSysInf *ucDstAddr,StCacheProc *ucSrcAddr,unsigned char ucDataType)
 {
   if(0 == ucDataType)
   {
+//    M4回发MC buf清0
     memset(ucDstAddr->ucTcpTxBuf,0x00,1024);
+//    拷贝数据
     memcpy(ucDstAddr->ucTcpTxBuf,ucSrcAddr->ucMCRxBuf[ucSrcAddr->ucMCOutIndex],
              ucSrcAddr->usMCRxLen[ucSrcAddr->ucMCOutIndex]);
+//    读数据包长度
     ucDstAddr->usTcpTxLen = ucSrcAddr->usMCRxLen[ucSrcAddr->ucMCOutIndex];
+//    M4接收buf清0
     memset(ucSrcAddr->ucMCRxBuf[ucSrcAddr->ucMCOutIndex],0x00,1024);
+//    每拷贝一包数据，环形buf索引++
     ucSrcAddr->ucMCOutIndex++;
+//    如果接收buf到底，返回顶端
     if(ucSrcAddr->ucMCOutIndex >= MaxNum)
     {
       ucSrcAddr->ucMCOutIndex = 0;
-    }
-  }
-  else if(1 == ucDataType)
-  {
-    memset(ucDstAddr->ucTcpPLCTxBuf,0x00,1024);
-    memcpy(ucDstAddr->ucTcpPLCTxBuf,ucSrcAddr->ucPLCRxBuf[ucSrcAddr->ucPLCOutIndex],
-             ucSrcAddr->usPLCRxLen[ucSrcAddr->ucPLCOutIndex]);
-    ucDstAddr->usTcpPLCTxLen = ucSrcAddr->usPLCRxLen[ucSrcAddr->ucPLCOutIndex];
-    memset(ucSrcAddr->ucPLCRxBuf[ucSrcAddr->ucPLCOutIndex],0x00,1024);
-    ucSrcAddr->ucPLCOutIndex++;
-    if(ucSrcAddr->ucPLCOutIndex >= MaxNum)
-    {
-      ucSrcAddr->ucPLCOutIndex = 0;
     }
   }
   else if(2 == ucDataType)
@@ -95,7 +83,9 @@ void CacheOutputProc(StSysInf *ucDstAddr,StCacheProc *ucSrcAddr,unsigned char uc
     }
   }
 }
-
+//-----------------------------------------------------------------------
+//前台数据转发函数，从环形buf拷贝数据并转发
+//-----------------------------------------------------------------------
 void DataProcess()
 {
   ///MCenter-->M4
@@ -111,22 +101,11 @@ void DataProcess()
     }
   }
   
-  ///PLC-->M4
-  if(g_stCacheProc.ucPLCInIndex != g_stCacheProc.ucPLCOutIndex)
-  {
-    watchDogFeed();
-    if(0 == g_stSysInf.ucUartBusyFlag)
-    {
-      CacheOutputProc(&g_stSysInf,&g_stCacheProc,1);
-      g_stSysInf.ucUartBusyFlag = 1;
-      DMA_SendData(g_stSysInf.ucTcpPLCTxBuf,g_stSysInf.usTcpPLCTxLen);
-      SysCtlDelay(g_stSysInf.ulSysClock/300);
-    }
-  }
-  ///M4-->MCenter/PLC
+  ///M4-->MCenter
   if(g_stCacheProc.ucUartInIndex != g_stCacheProc.ucUartOutIndex)
   {
     watchDogFeed();
+//    回发MC数据处理，在TCP_HuiFa_zxz中判断下行告诉网桥该发给谁
     if(g_stCacheProc.ucUartRxBuf[g_stCacheProc.ucUartOutIndex][0] != 3)
     {
       CacheOutputProc(&g_stSysInf,&g_stCacheProc,2);
@@ -136,58 +115,11 @@ void DataProcess()
     }
     else
     {
-      if(0 == g_stSysInf.ucUartBusyFlag)
-      {
-        g_stCacheProc.ucUartOutIndex++;
-        memset(g_stSysInf.ucUartTxBuf,0x00,1024);
-        g_stSysInf.usUartTxLen = 0;
-        g_stSysInf.ucUartBusyFlag = 1;
-        ConfInfoReady();
-        DMA_SendData(g_stSysInf.ucUartTxBuf,g_stSysInf.usUartTxLen);
-        SysCtlDelay(g_stSysInf.ulSysClock/300);
-      }
     }
   }
 }
 
-void ConfInfoReady(void)
-{
-  unsigned long ulCheckSum = 0;
-  unsigned char i = 0;
-  g_stSysInf.ucUartTxBuf[g_stSysInf.usUartTxLen++] = 0xda;
-  g_stSysInf.ucUartTxBuf[g_stSysInf.usUartTxLen++] = 0x90;
-  g_stSysInf.ucUartTxBuf[g_stSysInf.usUartTxLen++] = 0xda;
-  g_stSysInf.ucUartTxBuf[g_stSysInf.usUartTxLen++] = 0x90;
-  g_stSysInf.ucUartTxBuf[g_stSysInf.usUartTxLen++] = 3;
-  g_stSysInf.ucUartTxBuf[g_stSysInf.usUartTxLen++] = 0;///Len
-  g_stSysInf.ucUartTxBuf[g_stSysInf.usUartTxLen++] = 0;
-  ///NetBridge IP Port
-  g_stSysInf.ucUartTxBuf[g_stSysInf.usUartTxLen++] = (unsigned char)(g_stSysInf.stLocalAddr.addr & 0xFF);
-  g_stSysInf.ucUartTxBuf[g_stSysInf.usUartTxLen++] = (unsigned char)((g_stSysInf.stLocalAddr.addr >> 8) & 0xFF);
-  g_stSysInf.ucUartTxBuf[g_stSysInf.usUartTxLen++] = (unsigned char)((g_stSysInf.stLocalAddr.addr >> 16) & 0xFF);
-  g_stSysInf.ucUartTxBuf[g_stSysInf.usUartTxLen++] = (unsigned char)((g_stSysInf.stLocalAddr.addr >> 24) & 0xFF);
-  g_stSysInf.ucUartTxBuf[g_stSysInf.usUartTxLen++] = (unsigned char)(g_stSysInf.usLocalPort & 0xFF);
-  g_stSysInf.ucUartTxBuf[g_stSysInf.usUartTxLen++] = (unsigned char)((g_stSysInf.usLocalPort >> 8) & 0xFF);
-  ///PLC IP Port 
-  g_stSysInf.ucUartTxBuf[g_stSysInf.usUartTxLen++] = (unsigned char)(g_stSysInf.stSerPLCAddr.addr & 0xFF);
-  g_stSysInf.ucUartTxBuf[g_stSysInf.usUartTxLen++] = (unsigned char)((g_stSysInf.stSerPLCAddr.addr >> 8) & 0xFF);
-  g_stSysInf.ucUartTxBuf[g_stSysInf.usUartTxLen++] = (unsigned char)((g_stSysInf.stSerPLCAddr.addr >> 16) & 0xFF);
-  g_stSysInf.ucUartTxBuf[g_stSysInf.usUartTxLen++] = (unsigned char)((g_stSysInf.stSerPLCAddr.addr >> 24) & 0xFF);
-  g_stSysInf.ucUartTxBuf[g_stSysInf.usUartTxLen++] = (unsigned char)(g_stSysInf.usSerPLCPort & 0xFF);;
-  g_stSysInf.ucUartTxBuf[g_stSysInf.usUartTxLen++] = (unsigned char)((g_stSysInf.usSerPLCPort >> 8) & 0xFF);;
-  
-  ///Cal Frame Len
-  g_stSysInf.ucUartTxBuf[6] = g_stSysInf.usUartTxLen + 2 - 7;
-  
-  ///CheckSum
-  for(i=4;i<g_stSysInf.usUartTxLen;i++)
-  {
-    ulCheckSum += g_stSysInf.ucUartTxBuf[i];
-  }
-  g_stSysInf.ucUartTxBuf[g_stSysInf.usUartTxLen++] = (unsigned char)((ulCheckSum >> 8) &0xFF);
-  g_stSysInf.ucUartTxBuf[g_stSysInf.usUartTxLen++] = (unsigned char)(ulCheckSum &0xFF);
-  
-}
+
 void TCP_HuiFa_zxz(unsigned short usLen,unsigned char ucFlag)
 {
   unsigned long temp_n = 1;
@@ -211,17 +143,9 @@ void TCP_HuiFa_zxz(unsigned short usLen,unsigned char ucFlag)
       tcp_output(g_stSysInf.MCClipcb);
       memset(TCP_TxBuf,0x00,1024);
     }
-    else if((ucFlag == 2) && (g_stSysInf.ucTCPPLCConFlag == 1))//
+    
+    else
     {
-      TCP_TxLen = 0;
-      TCP_TxLen = g_stSysInf.usUartTxLen - 3;
-      for(temp_n=0;temp_n<TCP_TxLen;temp_n++)
-      {
-        TCP_TxBuf[temp_n] = g_stSysInf.ucUartTxBuf[temp_n+3];
-      }
-      tcp_write(g_stSysInf.PLCClipcb, TCP_TxBuf,TCP_TxLen,1);
-      tcp_output(g_stSysInf.PLCClipcb);
-      memset(TCP_TxBuf,0x00,1024);
     }
   }
 }
