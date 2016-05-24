@@ -18,51 +18,52 @@ void tcpLwipInit()
   g_stSysInf.ucMacAddr[3] = g_stSysInf.ucNetCfgBuf[19];//0x2;//((ulUser1 >>  0) & 0xff);
   g_stSysInf.ucMacAddr[4] = g_stSysInf.ucNetCfgBuf[20];//0xfc;//((ulUser1 >>  8) & 0xff);
   g_stSysInf.ucMacAddr[5] = g_stSysInf.ucNetCfgBuf[21];//0xa2;//((ulUser1 >> 16) & 0xff);   
-  //设置server IP
-  IP4_ADDR(&g_stSysInf.stSerMCenAddr,g_stSysInf.ucNetCfgBuf[38],g_stSysInf.ucNetCfgBuf[39],\
-    g_stSysInf.ucNetCfgBuf[40],g_stSysInf.ucNetCfgBuf[41]); 
-//PLC未使用
-//  IP4_ADDR(&g_stSysInf.stSerPLCAddr,g_stSysInf.ucNetCfgBuf[56],g_stSysInf.ucNetCfgBuf[57],\
-//    g_stSysInf.ucNetCfgBuf[58],g_stSysInf.ucNetCfgBuf[59]);
-  //设置client IP
-  IP4_ADDR(&g_stSysInf.stLocalAddr,g_stSysInf.ucNetCfgBuf[23],g_stSysInf.ucNetCfgBuf[24],\
-    g_stSysInf.ucNetCfgBuf[25],g_stSysInf.ucNetCfgBuf[26]);
-  
-  
+
   //读取网络通讯端口
   g_stSysInf.usSerMCPort	= (unsigned short)g_stSysInf.ucNetCfgBuf[42]<<8 | g_stSysInf.ucNetCfgBuf[43];
-//PLC未使用
-//  g_stSysInf.usSerPLCPort	= (unsigned short)g_stSysInf.ucNetCfgBuf[60]<<8 | g_stSysInf.ucNetCfgBuf[61];
   g_stSysInf.usLocalPort	= (unsigned short)g_stSysInf.ucNetCfgBuf[36]<<8 | g_stSysInf.ucNetCfgBuf[37];
   
-  //初始化lwIP，设置IP地址
-  //配置协议栈，
-  lwIPInit(g_stSysInf.ulSysClock,g_stSysInf.ucMacAddr, GetNetIPConfig(), GetNetMaskConfig(), GetNetGwConfig(), IPADDR_USE_STATIC); //设置LWIP
+  //初始化配置协议栈，GetNetIPConfig()、GetNetMaskConfig()、GetNetGwConfig()实际和IP4_ADDR()功能一样
+  lwIPInit(g_stSysInf.ulSysClock,g_stSysInf.ucMacAddr, GetNetIPConfig(), GetNetMaskConfig(), GetNetGwConfig(), IPADDR_USE_STATIC); 
   //  LocatorMACAddrSet(g_stSysInf.ucMacAddr);  
 }
 
 //-------------------------------------------------------------------------------
-//client初始化并重连server
+//client初始化并连接server
 //-------------------------------------------------------------------------------
 void TCP_MClient_Init(void)
 {
   Neterrcnt = 0;
   link_fail = 0;
-  //设置服务器IP
+  //读取并设置server IP，也就是把4个段的值转成1个值
   IP4_ADDR(&g_stSysInf.stSerMCenAddr,g_stSysInf.ucNetCfgBuf[38],g_stSysInf.ucNetCfgBuf[39],g_stSysInf.ucNetCfgBuf[40],g_stSysInf.ucNetCfgBuf[41]);
   g_stSysInf.MCClipcb = NULL;
-  g_stSysInf.MCClipcb = tcp_new();                        
-  tcp_bind(g_stSysInf.MCClipcb,IP_ADDR_ANY,g_stSysInf.usLocalPort);  ////&svripaddr
+//  创建协议控制块
+  g_stSysInf.MCClipcb = tcp_new();
+//  绑定本地IP和端口到协议控制块
+  tcp_bind(g_stSysInf.MCClipcb,IP_ADDR_ANY,g_stSysInf.usLocalPort);
+//  设置中断优先级
   IntPrioritySet(INT_EMAC0, 0x00);
+//  设置连接优先级
   tcp_setprio(g_stSysInf.MCClipcb, TCP_PRIO_NORMAL);///TCP_PRIO_MAX  
   IsNetInit = 0;
+//  发起连接
   net_err = tcp_connect(g_stSysInf.MCClipcb,&g_stSysInf.stSerMCenAddr,g_stSysInf.usSerMCPort,TCPMCli_Connected);
 }
+
+//-------------------------------------------------------------------------------
+//连接关闭并释放内存
+//-------------------------------------------------------------------------------
 void TCP_MClient_Close(void)
 {
   tcp_abort(g_stSysInf.MCClipcb);
   //tcp_close(g_stSysInf.MCClipcb); //上一句已经memp_free
 }
+
+
+//-------------------------------------------------------------------------------
+//连接回调函数，连接时调用，同时将控件连接数据包发出,并设置了接收回调函数
+//-------------------------------------------------------------------------------
 err_t TCPMCli_Connected(void *arg,struct tcp_pcb *pcb,err_t err)
 {
   unsigned char req_temp;
@@ -90,6 +91,10 @@ err_t TCPMCli_Connected(void *arg,struct tcp_pcb *pcb,err_t err)
   return ERR_OK;
 }
 
+
+//-------------------------------------------------------------------------------
+//接收回调函数，当收到TCP网络数据时调用
+//-------------------------------------------------------------------------------
 err_t TCPMCli_recv(void *arg, struct tcp_pcb *pcb,struct pbuf *p,err_t err)
 {
   unsigned char *pucData;
@@ -125,6 +130,7 @@ err_t TCPMCli_recv(void *arg, struct tcp_pcb *pcb,struct pbuf *p,err_t err)
         }
       }
       pbuf_free(p);
+//      必须先解控件包头
       if((0xfa == g_stSysInf.ucTcpRecBuf[0]) && (0x01 == g_stSysInf.ucTcpRecBuf[1]) && (0x01 == g_stSysInf.ucTcpRecBuf[2]))
       {
         TCP_RX_right = 1; 

@@ -116,3 +116,10 @@ extern volatile unsigned long UART_RX_Timer;
 extern unsigned char TCP_Return_Flag;
 extern unsigned long ulUartRxRealLen;
 #endif
+
+//-----------------------------------
+//µ÷ÊÔ±ê¼Ç
+//-----------------------------------
+#ifndef TCDEBUG
+#define TCDEBUG 1
+#endif

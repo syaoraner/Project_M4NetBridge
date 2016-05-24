@@ -10,7 +10,8 @@ unsigned int logintick = 0;
 
 unsigned char g_ucTmpNetcfgbuf[64] = {0};
 unsigned char g_ucWebRestart = 0;
-static const unsigned char http_logo_gif[] =
+
+/*static const unsigned char http_logo_gif[] =
 {
   0x47,0x49,0x46,0x38,0x37,0x61,0x78,0x00,0x14,0x00,0xF7,0x00,0x00,0x04,0x02,0x53,
   0x74,0x82,0xA9,0x7C,0x7A,0xA0,0x34,0x42,0x81,0xB4,0xC2,0xD4,0x0C,0x22,0x6F,0x54,
@@ -207,17 +208,16 @@ static const unsigned char http_logo_gif[] =
   0xF8,0xD2,0x3C,0xA6,0x50,0x01,0x76,0x3C,0x83,0xCE,0x15,0x08,0x3E,0xF2,0x1F,0xE1,
   0x87,0x47,0x50,0x83,0xAF,0xCE,0x36,0xAF,0x0B,0xF8,0x07,0xE2,0x03,0x74,0x8E,0xFF,
   0xFC,0x02,0x09,0x08,0x00,0x3B,
-};
+};*/
 
-static const char http_html_hdr[]="HTTP/1.1 200 OK\r\nServer: LWIP/1.3.1\r\nContent-type: text/html\r\n\r\n";
-//static const char http_gif_hdr[]="HTTP/1.0 200 OK\r\nServer: lwIP/1.3.1\r\nContent-type: image/gif\r\n\r\n";
+static const char http_html_hdr[]="HTTP/1.1 200 OK\r\nServer: LWIP/1.4.1\r\nContent-type: text/html\r\n\r\n";
 
 static const char html_login[] =
 "<html><head><title>网桥参数配置界面登录</title><style type=\"text/css\"><!--.STYLE1 {color: #FF3300}--></style></head>"
 "<body><div align=\"center\">"
 "<table height=\"179\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"text-align: left; width: 100%; height: 66px;\">"
 "<tbody><tr><td width=\"316\" style=\"vertical-align: top; text-align: left; width: 316px;\">"
-"<a href=\"http://www.cqmas.com\" target=\"_blank\"></a></td>"///<img src=\"logo.gif\" border=\"0\" /></a></td>"
+//"<a href=\"http://www.cqmas.com\" target=\"_blank\"></a></td>"<img src=\"logo.gif\" border=\"0\" /></a></td>"
 "<td width=\"707\" style=\"text-align: right; vertical-align: bottom;\"><span class=\"STYLE1\">"
 "M4网桥V1.0</span></td></tr></tbody></table><hr /><p>&nbsp;</p>"
 "<table width=\"216\" height=\"75\" border=\"0\"><tr><td></td></tr><tr><td></td></tr></table>"
@@ -237,7 +237,7 @@ static const char html_repwd[] =
 "<body><div align=\"center\">"
 "<table height=\"179\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"text-align: left; width: 100%; height: 66px;\">"
 "<tbody><tr><td width=\"316\" style=\"vertical-align: top; text-align: left; width: 316px;\">"
-"<a href=\"http://www.cqmas.com\" target=\"_blank\"><img src=\"logo.gif\" border=\"0\" /></a></td>"
+//"<a href=\"http://www.cqmas.com\" target=\"_blank\"><img src=\"logo.gif\" border=\"0\" /></a></td>"
 "</tr></tbody></table>"
 "<table width=\"216\" height=\"75\" border=\"0\"><tr><td></td></tr><tr><td></td></tr></table>"
 "<form action=\"repwd.cgi\" method=\"GET\" name=\"login\"><table width=\"388\" height=\"135\" border=\"0\">"
@@ -262,7 +262,7 @@ static const char html_macset1[] =
 "<body><div align=\"center\">"
 "<table height=\"179\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"text-align: left; width: 100%; height: 66px;\">"
 "<tbody><tr><td width=\"316\" style=\"vertical-align: top; text-align: left; width: 316px;\">"
-"<a href=\"http://www.cqmas.com\" target=\"_blank\"><img src=\"logo.gif\" border=\"0\" /></a></td>"
+//"<a href=\"http://www.cqmas.com\" target=\"_blank\"><img src=\"logo.gif\" border=\"0\" /></a></td>"
 "</tr></tbody></table>"
 "<table width=\"216\" height=\"75\" border=\"0\"><tr><td></td></tr><tr><td></td></tr></table>"
 "<form action=\"macset.cgi\" method=\"GET\" name=\"login\"><table width=\"388\" height=\"135\" border=\"0\">"
@@ -498,13 +498,13 @@ void GetModelSet(struct tcp_pcb *pcb)
   //    sprintf(buf,"<p>是否控制RTS信号:<SELECT size=1 name=D10><OPTION selected value=0>否</OPTION><OPTION value=1>是</OPTION></SELECT></p>");
   //  tcp_write(pcb,buf,strlen(buf),1);
   
-  sprintf(buf, "<p>PLC服务器IP地址:<INPUT onblur=checkIP(T9) value=%d.%d.%d.%d name=T9></p>", g_stSysInf.ucNetCfgBuf[56], g_stSysInf.ucNetCfgBuf[57], g_stSysInf.ucNetCfgBuf[58], g_stSysInf.ucNetCfgBuf[59]);
-  tcp_write(pcb,buf,strlen(buf),1);
-  ss=g_stSysInf.ucNetCfgBuf[60];
-  ss<<=8;
-  ss+=g_stSysInf.ucNetCfgBuf[61];
-  sprintf(buf,"<p>PLC服务器通信端口:<INPUT onblur=checkNum(T10,65535) value=%d name=T10></p>",ss);
-  tcp_write(pcb,buf,strlen(buf),1);
+//  sprintf(buf, "<p>PLC服务器IP地址:<INPUT onblur=checkIP(T9) value=%d.%d.%d.%d name=T9></p>", g_stSysInf.ucNetCfgBuf[56], g_stSysInf.ucNetCfgBuf[57], g_stSysInf.ucNetCfgBuf[58], g_stSysInf.ucNetCfgBuf[59]);
+//  tcp_write(pcb,buf,strlen(buf),1);
+//  ss=g_stSysInf.ucNetCfgBuf[60];
+//  ss<<=8;
+//  ss+=g_stSysInf.ucNetCfgBuf[61];
+//  sprintf(buf,"<p>PLC服务器通信端口:<INPUT onblur=checkNum(T10,65535) value=%d name=T10></p>",ss);
+//  tcp_write(pcb,buf,strlen(buf),1);
   
   sprintf(buf,"</TD></TR></TBODY></TABLE><P><INPUT type=submit value=保存 name=B1>&nbsp;&nbsp;");
   tcp_write(pcb,buf,strlen(buf),1);
@@ -743,11 +743,13 @@ static err_t http_recv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err
           {
             switch(uri[1])
             {
+//              程序更新，暂时未写功能
             case 'u':
               //                FlashErase(241 * 1024);
               fw_flag = 1;
               break;
-            case 'g':
+//              读取模块参数，暂时未写功能
+//            case 'g':
 //                logintick = 0;
 //                tcp_write(pcb,http_html_hdr,sizeof(http_html_hdr),1);
 //                tcp_write(pcb,html_getrd,sizeof(html_getrd),1);
@@ -768,22 +770,24 @@ static err_t http_recv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err
 //                usprintf(buf,"parent.io_s.innerHTML=\"手动:%d-%d-%d-%d-%d-%d-%d-%d\";", rdata.io_s[0], rdata.io_s[1], rdata.io_s[2], rdata.io_s[3], rdata.io_s[4], rdata.io_s[5], rdata.io_s[6], rdata.io_s[7]);
 //                tcp_write(pcb,buf,strlen(buf),1);
 //                tcp_write(pcb,html_getrd1,sizeof(html_getrd1),1);
-              break;
-            case 'c':
-              if(loginipaddr != tmpip)
-              {
-                logintick = 0;
-                loginipaddr = 0;
-                tcp_write(pcb,http_html_hdr,sizeof(http_html_hdr),1);
-                tcp_write(pcb,html_login,sizeof(html_login),1);
-                tcp_write(pcb,html_login_end,sizeof(html_login_end),1);
-                break;
-              }
-              logintick = 0;
-              tcp_write(pcb,http_html_hdr,sizeof(http_html_hdr),1);
-              tcp_write(pcb,html_config,sizeof(html_config),1);
-              GetModelSet(pcb);
-              break;
+//              break;
+//              功能未知，未使用
+//            case 'c':
+//              if(loginipaddr != tmpip)
+//              {
+//                logintick = 0;
+//                loginipaddr = 0;
+//                tcp_write(pcb,http_html_hdr,sizeof(http_html_hdr),1);
+//                tcp_write(pcb,html_login,sizeof(html_login),1);
+//                tcp_write(pcb,html_login_end,sizeof(html_login_end),1);
+//                break;
+//              }
+//              logintick = 0;
+//              tcp_write(pcb,http_html_hdr,sizeof(http_html_hdr),1);
+//              tcp_write(pcb,html_config,sizeof(html_config),1);
+//              GetModelSet(pcb);
+//              break;
+//             修改密码
             case 'r':
               flag = 0;
               pp = (unsigned char *)strstr((const char *)uri,(const char *)"p1=");
@@ -842,18 +846,21 @@ static err_t http_recv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err
                   }
                 }
               }
+//              旧密码错误
               if(flag == 1)
               {
                 tcp_write(pcb,http_html_hdr,sizeof(http_html_hdr),1);
                 tcp_write(pcb,html_repwd,sizeof(html_repwd),1);
                 tcp_write(pcb,html_repwd_err1,sizeof(html_repwd_err1),1);
               }
+//              重设密码不一致
               else if(flag == 2)
               {
                 tcp_write(pcb,http_html_hdr,sizeof(http_html_hdr),1);
                 tcp_write(pcb,html_repwd,sizeof(html_repwd),1);
                 tcp_write(pcb,html_repwd_err2,sizeof(html_repwd_err2),1);
               }
+//              密码重设成功
               else if(flag == 3)
               {
                 for(i=0;i<16;i++) g_stSysInf.ucNetCfgBuf[i]=pwd1[i];
@@ -871,6 +878,7 @@ static err_t http_recv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err
                 tcp_write(pcb,html_repwd_end,sizeof(html_repwd_end),1);
               }
               break;
+//              修改MAC
             case 'm':
               flag = 0;
               pp = (unsigned char *)strstr((const char *)uri,(const char *)"mac=");
@@ -878,6 +886,7 @@ static err_t http_recv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err
               {
                 flag = SaveMac((char *)pp);
               }
+//              输入的MAC错误
               if(flag == 1)
               {
                 tcp_write(pcb,http_html_hdr,sizeof(http_html_hdr),1);
@@ -887,6 +896,7 @@ static err_t http_recv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err
                 tcp_write(pcb,html_macset2,sizeof(html_macset2),1);
                 tcp_write(pcb,html_macset_err1,sizeof(html_macset_err1),1);
               }
+//              输入的出厂密码错误
               else if(flag == 2)
               {
                 tcp_write(pcb,http_html_hdr,sizeof(http_html_hdr),1);
@@ -896,6 +906,7 @@ static err_t http_recv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err
                 tcp_write(pcb,html_macset2,sizeof(html_macset2),1);
                 tcp_write(pcb,html_macset_err2,sizeof(html_macset_err2),1);
               }
+//              MAC修改成功
               else if(flag == 3)
               {
                 tcp_write(pcb,http_html_hdr,sizeof(http_html_hdr),1);
@@ -923,6 +934,7 @@ static err_t http_recv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err
                 //                    SysCtlReset();
               }
               break;
+//              保存设置
             case 's':
               //                            if(loginipaddr != tmpip)
               //                            {
@@ -1029,6 +1041,7 @@ static err_t http_recv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err
                 GetModelSet(pcb);
               }
               break;
+//              登陆界面
             case 'l':
               if(uri[4]=='i')
               {
@@ -1056,6 +1069,7 @@ static err_t http_recv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err
                 {
                   if(pp[4]=='z'&&pp[5]=='f'&&pp[6]=='1'&&pp[7]=='3'&&pp[15]=='1'&&pp[16]=='2') flag = 1;
                 }
+//                密码正确进入配置页面
                 if(flag == 1)
                 {
                   loginipaddr = tmpip;
@@ -1064,6 +1078,7 @@ static err_t http_recv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err
                   tcp_write(pcb,html_config,sizeof(html_config),1);
                   GetModelSet(pcb);
                 }
+//                登陆密码错误
                 else if(flag == 2)
                 {
                   loginipaddr = 0;
@@ -1081,11 +1096,11 @@ static err_t http_recv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err
                   tcp_write(pcb,html_login_end,sizeof(html_login_end),1);
                 }
               }
-              else if(uri[4]=='o')
-              {
-                //                  tcp_write(pcb,http_gif_hdr,sizeof(http_gif_hdr)-1,1);
-                tcp_write(pcb,http_logo_gif,sizeof(http_logo_gif),1);
-              }
+//              else if(uri[4]=='o')
+//              {
+//                //                  tcp_write(pcb,http_gif_hdr,sizeof(http_gif_hdr)-1,1);
+//                tcp_write(pcb,http_logo_gif,sizeof(http_logo_gif),1);
+//              }
               break;
             default:
               //                loginipaddr = 0;
@@ -1551,7 +1566,9 @@ static err_t http_recv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err
 
 static err_t http_accept(void *arg,struct tcp_pcb *pcb,err_t err)
 {
-  tcp_setprio(pcb, TCP_PRIO_MIN);     
+//  设置tcp连接优先级为最低
+  tcp_setprio(pcb, TCP_PRIO_MIN);
+//  设置http数据接收回调函数
   tcp_recv(pcb,http_recv); 
   //  g_ucReLink = 1;
   err = ERR_OK;
@@ -1560,10 +1577,13 @@ static err_t http_accept(void *arg,struct tcp_pcb *pcb,err_t err)
 
 void httpset_init(void)
 {
-  
-  http_pcb = tcp_new();                         
-  tcp_bind(http_pcb,IP_ADDR_ANY,80);    ///        
-  http_pcb = tcp_listen(http_pcb);                   
+//  创建协议控制块
+  http_pcb = tcp_new();
+//  绑定本地IP，端口80
+  tcp_bind(http_pcb,IP_ADDR_ANY,80);
+//  设置监听
+  http_pcb = tcp_listen(http_pcb);
+//  设置http回调函数
   tcp_accept(http_pcb,http_accept);           
 }
 
@@ -1592,7 +1612,7 @@ void netSetInit(void)
     g_stSysInf.ucNetCfgBuf[21] = 0xf3;
     
     g_stSysInf.ucNetCfgBuf[22]=1;//手动设置IP地址
-    //IP地址 192.168.1.168
+    //IP地址 192.168.3.168
     g_stSysInf.ucNetCfgBuf[23]=0xc0;//IP
     g_stSysInf.ucNetCfgBuf[24]=0xa8;
     g_stSysInf.ucNetCfgBuf[25]=0x03;
@@ -1638,16 +1658,7 @@ void netSetInit(void)
     g_stSysInf.ucNetCfgBuf[53]=0xe8;
     
     g_stSysInf.ucNetCfgBuf[54]=0;///是否发送多机通讯位
-    g_stSysInf.ucNetCfgBuf[55]=0;//是否控制RTS信号
-    //未使用
-//    g_stSysInf.ucNetCfgBuf[56]=0xc0;           ///PLC服务器IP 192.168.1.61
-//    g_stSysInf.ucNetCfgBuf[57]=0xa8;
-//    g_stSysInf.ucNetCfgBuf[58]=0x01;
-//    g_stSysInf.ucNetCfgBuf[59]=0x3d;
-//    
-//    g_stSysInf.ucNetCfgBuf[60]=0x07;         ///PLC服务器端口号：2000
-//    g_stSysInf.ucNetCfgBuf[61]=0xd0;
-    
+    g_stSysInf.ucNetCfgBuf[55]=0;//是否控制RTS信号    
   }
 }
 

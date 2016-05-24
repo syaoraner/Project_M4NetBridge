@@ -2,6 +2,7 @@
 #define __SYSINIT_H__
 #include "config.h"
 #define MaxNum 10
+
 typedef struct _StSysInf
 {
   struct tcp_pcb *MCClipcb; 
@@ -33,6 +34,7 @@ typedef struct _StSysInf
   
 }StSysInf;
 
+//环形buf结构体
 typedef struct _StCacheProc
 {
   unsigned short usMCRxLen[MaxNum];

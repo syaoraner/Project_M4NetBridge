@@ -60,7 +60,8 @@ void Init()
   DMA_Init();
   //初始化串口UART3
   UARTInit();
-  //  UARTInit(BaudRate_sz[Baud_k]);   
+  
+  //协议栈初始化   
   tcpLwipInit();
   
   ///TCP初始化
@@ -69,7 +70,7 @@ void Init()
   ////UDP初始化
   UPS_UDP_Init(); 
   
-  //初始化网络配置
+  //http初始化
   httpset_init();
   SysCtlDelay(g_stSysInf.ulSysClock/3000);//delay 300ms    
   

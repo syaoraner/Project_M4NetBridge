@@ -10,27 +10,20 @@ unsigned long g_usNetResetTiming = 0;
 volatile unsigned long UART_RX_Timer = 0;
 unsigned long g_ulSynSentTime = 0;
 unsigned long g_ulReLinkTimer = 0;
-unsigned char g_ucExWDFlag = GPIO_PIN_1;
 unsigned long g_ulLEDTic = 0;
-unsigned char g_ucLEDFlag = GPIO_PIN_0;
-
+unsigned char g_ucLedBlink=0x01;
+unsigned short g_ucLedBlinktick;
 
 StSysInf g_stSysInf;
 StCacheProc g_stCacheProc;
 void SysTickIntHandler(void)
 {
+  g_ucLedBlinktick++; 
+  
   HWREGBITW(&g_ulFlags, FLAG_SYSTICK) = 1;
   logintick++;
   g_stSysInf.ulHWLinkStateTic++;
-  g_ulLEDTic++;
-  if(g_ulLEDTic >= 500)
-  {
-    g_ulLEDTic = 0;
-    GPIOPinWrite(GPIO_PORTA_BASE, GPIO_PIN_0, g_ucLEDFlag);
-    g_ucLEDFlag =  ~g_ucLEDFlag;
-    GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1, g_ucExWDFlag);
-    g_ucExWDFlag = ~g_ucExWDFlag;
-  }
+
   /*******MCenter pcb state**********/
 #if 1
   if(g_stSysInf.MCClipcb->state == SYN_SENT)
@@ -141,16 +134,19 @@ void lwIPHostTimerHandler(void)
 }
 
 void main()
-{
-  unsigned char ucLedBlink=0x01;
+{  
   Init();
   while(1)
   {
-    ucLedBlink=~ucLedBlink;
-    GPIOPinWrite(GPIO_PORTA_BASE,GPIO_PIN_0,ucLedBlink);
-    watchDogFeed();    
+    if(g_ucLedBlinktick == 500)
+    {
+      g_ucLedBlinktick = 0;
+      g_ucLedBlink=~g_ucLedBlink;
+      GPIOPinWrite(GPIO_PORTA_BASE,GPIO_PIN_0,g_ucLedBlink);
+    }
+    watchDogFeed();
     TCP_Relink();
-    DataProcess();     
+    DataProcess();
   }
 }
 

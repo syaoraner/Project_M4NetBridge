@@ -7,6 +7,10 @@ unsigned char ds_sj_dao_021S = 0;
 unsigned char TCP_Return_Flag = 0;
 unsigned char TCP_TxBuf[1024] = {0};
 unsigned short TCP_TxLen = 0;
+
+//-----------------------------------------------------------------------------
+//用于将数据搬入环形buf
+//-----------------------------------------------------------------------------
 void CacheInputProc(StCacheProc *ucDstAddr,StSysInf *ucSrcAddr,
                     unsigned short usCopyLen,unsigned char ucDataType)
 {
@@ -44,7 +48,7 @@ void CacheInputProc(StCacheProc *ucDstAddr,StSysInf *ucSrcAddr,
 }
 
 //--------------------------------------------------------------------------------
-//用于环形buf搬数据
+//用于从环形buf搬出数据
 //@param  *ucDstAddr      目标地址指针
 //@param  *ucSrcAddr      源地址指针
 //@param  ucDataType      数据传输的方向 0——MC到M4，2——M4回发MC
@@ -54,14 +58,19 @@ void CacheOutputProc(StSysInf *ucDstAddr,StCacheProc *ucSrcAddr,unsigned char uc
   if(0 == ucDataType)
   {
 //    M4回发MC buf清0
-    memset(ucDstAddr->ucTcpTxBuf,0x00,1024);
+    memset(ucDstAddr->ucUartTxBuf,0x00,1024);
 //    拷贝数据
-    memcpy(ucDstAddr->ucTcpTxBuf,ucSrcAddr->ucMCRxBuf[ucSrcAddr->ucMCOutIndex],
+    memcpy(ucDstAddr->ucUartTxBuf,ucSrcAddr->ucMCRxBuf[ucSrcAddr->ucMCOutIndex],
              ucSrcAddr->usMCRxLen[ucSrcAddr->ucMCOutIndex]);
 //    读数据包长度
-    ucDstAddr->usTcpTxLen = ucSrcAddr->usMCRxLen[ucSrcAddr->ucMCOutIndex];
+    ucDstAddr->usUartTxLen = ucSrcAddr->usMCRxLen[ucSrcAddr->ucMCOutIndex];
 //    M4接收buf清0
     memset(ucSrcAddr->ucMCRxBuf[ucSrcAddr->ucMCOutIndex],0x00,1024);
+    //      DEBUG下发数据直接回发
+#if     TCDEBUG
+      g_stSysInf.usTcpTxLen = g_stCacheProc.usMCRxLen[g_stCacheProc.ucMCOutIndex];
+      TCP_HuiFa_zxz(g_stSysInf.usTcpTxLen,1);
+#endif
 //    每拷贝一包数据，环形buf索引++
     ucSrcAddr->ucMCOutIndex++;
 //    如果接收buf到底，返回顶端
@@ -72,10 +81,10 @@ void CacheOutputProc(StSysInf *ucDstAddr,StCacheProc *ucSrcAddr,unsigned char uc
   }
   else if(2 == ucDataType)
   {
-    memset(ucDstAddr->ucUartTxBuf,0x00,1024);
-    memcpy(ucDstAddr->ucUartTxBuf,ucSrcAddr->ucUartRxBuf[ucSrcAddr->ucUartOutIndex],
+    memset(ucDstAddr->ucTcpTxBuf,0x00,1024);
+    memcpy(ucDstAddr->ucTcpTxBuf,ucSrcAddr->ucUartRxBuf[ucSrcAddr->ucUartOutIndex],
              ucSrcAddr->usUartRxLen[ucSrcAddr->ucUartOutIndex]);
-    ucDstAddr->usUartTxLen = ucSrcAddr->usUartRxLen[ucSrcAddr->ucUartOutIndex];
+    ucDstAddr->usTcpTxLen = ucSrcAddr->usUartRxLen[ucSrcAddr->ucUartOutIndex];
     g_stCacheProc.ucUartOutIndex++;
     if(g_stCacheProc.ucUartOutIndex >= MaxNum)
     {
@@ -88,20 +97,20 @@ void CacheOutputProc(StSysInf *ucDstAddr,StCacheProc *ucSrcAddr,unsigned char uc
 //-----------------------------------------------------------------------
 void DataProcess()
 {
-  ///MCenter-->M4
+  ///M4-->下行
   if(g_stCacheProc.ucMCInIndex != g_stCacheProc.ucMCOutIndex)
   {
     watchDogFeed();
     if(0 == g_stSysInf.ucUartBusyFlag)
     {
       CacheOutputProc(&g_stSysInf,&g_stCacheProc,0);
-      g_stSysInf.ucUartBusyFlag = 1;
-      DMA_SendData(g_stSysInf.ucTcpTxBuf,g_stSysInf.usTcpTxLen);
+//      g_stSysInf.ucUartBusyFlag = 1;
+//      DMA_SendData(g_stSysInf.ucUartTxBuf,g_stSysInf.usUartTxLen);
       SysCtlDelay(g_stSysInf.ulSysClock/300);
     }
   }
   
-  ///M4-->MCenter
+  ///M4-->上行
   if(g_stCacheProc.ucUartInIndex != g_stCacheProc.ucUartOutIndex)
   {
     watchDogFeed();
@@ -109,7 +118,7 @@ void DataProcess()
     if(g_stCacheProc.ucUartRxBuf[g_stCacheProc.ucUartOutIndex][0] != 3)
     {
       CacheOutputProc(&g_stSysInf,&g_stCacheProc,2);
-      TCP_HuiFa_zxz(g_stSysInf.usUartTxLen,g_stSysInf.ucUartTxBuf[0]);
+      TCP_HuiFa_zxz(g_stSysInf.usTcpTxLen,g_stSysInf.ucTcpTxBuf[0]);
       SysCtlDelay(g_stSysInf.ulSysClock/30);
       SysCtlDelay(g_stSysInf.ulSysClock/30);
     }
@@ -131,7 +140,7 @@ void TCP_HuiFa_zxz(unsigned short usLen,unsigned char ucFlag)
       TCP_TxBuf[TCP_TxLen++] = 0xfa;
       TCP_TxBuf[TCP_TxLen++] = 0x01;
       TCP_TxBuf[TCP_TxLen++] = 0x01;
-      for(temp_n = 3;temp_n < usLen;temp_n++)
+      for(temp_n = 0;temp_n < usLen;temp_n++)
       {
         TCP_TxBuf[TCP_TxLen++] = g_stSysInf.ucUartTxBuf[temp_n];
         if(g_stSysInf.ucUartTxBuf[temp_n] == 0xfa)
