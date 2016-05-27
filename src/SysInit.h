@@ -29,7 +29,7 @@ typedef struct _StSysInf
   unsigned long ulHWLinkStateTic;
   unsigned char ucMCReLinkFlag;
   
-  unsigned char ucUartBusyFlag;
+//  unsigned char ucUartBusyFlag;
   unsigned char ucTCPConFlag;
   
 }StSysInf;

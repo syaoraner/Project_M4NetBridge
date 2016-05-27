@@ -106,7 +106,7 @@ void UARTISR(void)
   if ((ulStatus & UDMA_DEF_USBEP1TX_SEC_UART2TX) == UDMA_DEF_USBEP1TX_SEC_UART2TX)        
   {
     while(UARTBusy(DEF_UART_BASE));
-    g_stSysInf.ucUartBusyFlag = 0;
+//    g_stSysInf.ucUartBusyFlag = 0;
   }  
   
   ulStatus = UARTIntStatus(DEF_UART_BASE, true);                

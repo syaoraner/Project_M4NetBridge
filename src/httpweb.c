@@ -377,13 +377,19 @@ void GetModelSet(struct tcp_pcb *pcb)
   {
     sprintf(buf,"<p>通信模式:<SELECT size=1 name=D3><OPTION value=0>使用虚拟串口和控件通信</OPTION>");
     tcp_write(pcb,buf,strlen(buf),1);
-    sprintf(buf,"<OPTION selected value=1>使用套接字通信</OPTION></SELECT></p>");
+    sprintf(buf,"<OPTION selected value=1>使用套接字通信</OPTION><OPTION value=2>纯透传</OPTION></SELECT></p>");
+  }
+  else if(g_stSysInf.ucNetCfgBuf[44] == 2)
+  {
+    sprintf(buf,"<p>通信模式:<SELECT size=1 name=D3><OPTION value=0>使用虚拟串口和控件通信</OPTION>");
+    tcp_write(pcb,buf,strlen(buf),1);
+    sprintf(buf,"<OPTION value=1>使用套接字通信</OPTION><OPTION selected value=2>纯透传</OPTION></SELECT></p>");
   }
   else
   {
     sprintf(buf,"<p>通信模式:<SELECT size=1 name=D3><OPTION selected value=0>使用虚拟串口和控件通信</OPTION>");
     tcp_write(pcb,buf,strlen(buf),1);
-    sprintf(buf,"<OPTION value=1>使用套接字通信</OPTION></SELECT></p>");
+    sprintf(buf,"<OPTION value=1>使用套接字通信</OPTION><OPTION value=2>纯透传</OPTION></SELECT></p>");
   }
   tcp_write(pcb,buf,strlen(buf),1);
   
@@ -1011,8 +1017,15 @@ static err_t http_recv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err
               pp = (unsigned char *)strstr((const char *)uri,(const char *)"D3=");
               if(pp[2] == '=')
               {
-                if(pp[3] == '0') g_ucTmpNetcfgbuf[44] = 0;
-                else g_ucTmpNetcfgbuf[44] = 1;                  
+                if(pp[3] == '0')
+//                  使用控件
+                  g_ucTmpNetcfgbuf[44] = 0;
+                else if(pp[3] == '1')
+//                  使用套接字
+                  g_ucTmpNetcfgbuf[44] = 1;
+                else
+//                  纯透传
+                  g_ucTmpNetcfgbuf[44] = 2;
               }
               l_ucNeedRestart = 0;
               for(i=0;i<64;i++)

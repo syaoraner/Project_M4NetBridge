@@ -93,9 +93,7 @@ extern unsigned char link_fail;
 extern unsigned char ackBufTag;
 extern unsigned short UART_Timer;
 extern unsigned char fw_flag;
-extern unsigned char TCP_js_flag;
 extern unsigned char link_state;
-extern unsigned char flag_c2000;
 extern unsigned char g_ucHaveCMD;
 extern unsigned char Mcenter_MODEL;
 extern unsigned char Mcenter_cmd_right;
@@ -121,5 +119,8 @@ extern unsigned long ulUartRxRealLen;
 //µ÷ÊÔ±ê¼Ç
 //-----------------------------------
 #ifndef TCDEBUG
-#define TCDEBUG 1
+#define TCDEBUG 0
 #endif
+
+#define DataType_EthRec         0
+#define DataType_UARTRec        2

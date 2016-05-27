@@ -2,7 +2,6 @@
 err_t net_err = ERR_CONN;
 unsigned short Neterrcnt = 0;
 unsigned short PLCNeterrcnt = 0;
-unsigned char TCP_js_flag = 0;
 unsigned char Mcenter_MODEL = 0;
 unsigned char PLC_MODEL = 0;
 unsigned char PLC_cmd_right = 0;
@@ -114,52 +113,42 @@ err_t TCPMCli_recv(void *arg, struct tcp_pcb *pcb,struct pbuf *p,err_t err)
       {        
         memset(g_stSysInf.ucTcpRecBuf,0x00,1024);
         g_stSysInf.usTcpRecLen = 0;
+//        将数据搬到ucTcpRecBuf
         for(i = 0; i < (p->tot_len); i++)
         {
           g_stSysInf.ucTcpRecBuf[g_stSysInf.usTcpRecLen++] = pucData[i];
-          if((pucData[i] == 0xfa) && (pucData[i+1] == 0))
+        }
+        pbuf_free(p);
+//        使用控件
+        if(g_stSysInf.ucNetCfgBuf[44] == 0)
+        {
+                    
+//        必须先解控件包头
+          if((0xfa == g_stSysInf.ucTcpRecBuf[0]) && (0x01 == g_stSysInf.ucTcpRecBuf[1]) && (0x01 == g_stSysInf.ucTcpRecBuf[2]))
           {
-            i++;
+            TCP_RX_right = 1;  
           }
-        } 
-        
-        if((0xfa == g_stSysInf.ucTcpRecBuf[0]) && (0xfa == g_stSysInf.ucTcpRecBuf[1]))
-        {
-          flag_c2000 = 1;  
-          TCP_js_flag  = 1;
+          else
+          {
+          }
         }
-      }
-      pbuf_free(p);
-//      必须先解控件包头
-      if((0xfa == g_stSysInf.ucTcpRecBuf[0]) && (0x01 == g_stSysInf.ucTcpRecBuf[1]) && (0x01 == g_stSysInf.ucTcpRecBuf[2]))
-      {
-        TCP_RX_right = 1; 
-        TCP_js_flag = 1; 
-        //head: 5a 5a 5a 5a 
-        if((0xee == g_stSysInf.ucTcpRecBuf[3]) && (0xee == g_stSysInf.ucTcpRecBuf[4]) && (0xee == g_stSysInf.ucTcpRecBuf[5])&& (0xee == g_stSysInf.ucTcpRecBuf[6]))
+//        使用套接字
+        else if(g_stSysInf.ucNetCfgBuf[44] == 1)
         {
-          TCP_RX_right = 2;
-          g_stSysInf.ucComModel = 0;
+          TCP_RX_right = 0;
         }
-        else if((0x5e == g_stSysInf.ucTcpRecBuf[3]) && (0x5e == g_stSysInf.ucTcpRecBuf[4]) && (0x5e == g_stSysInf.ucTcpRecBuf[5])&& (0x5e == g_stSysInf.ucTcpRecBuf[6]))
+//        纯透传
+        else if(g_stSysInf.ucNetCfgBuf[44] == 2)
         {
-          TCP_RX_right = 2;
-          g_stSysInf.ucComModel = 1;
+          TCP_RX_right = 1;
         }
         else
         {
-          TCP_RX_right = 2;
-          g_stSysInf.ucComModel = 2;
         }
       }
-      else  
+      if(TCP_RX_right == 1)
       {
-        TCP_RX_right = 0;
-      }
-      
-      if((TCP_RX_right == 2) && (g_stSysInf.ucComModel == 2))
-      {
-        CacheInputProc(&g_stCacheProc,&g_stSysInf,g_stSysInf.usTcpRecLen,0);
+        CacheInputProc(&g_stCacheProc,&g_stSysInf,g_stSysInf.usTcpRecLen,DataType_EthRec);
       }     
     }
     else

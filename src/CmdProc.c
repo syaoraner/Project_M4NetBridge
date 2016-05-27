@@ -20,20 +20,29 @@ void CacheInputProc(StCacheProc *ucDstAddr,StSysInf *ucSrcAddr,
     return;
   }
 //  网口接收数据存入环形buf
-  if(ucDataType == 0)
+  if(ucDataType == DataType_EthRec)
   {
-    ucDstAddr->usMCRxLen[ucDstAddr->ucMCInIndex] = usCopyLen - 3;
-    memcpy(ucDstAddr->ucMCRxBuf[ucDstAddr->ucMCInIndex],&ucSrcAddr->ucTcpRecBuf[3],usCopyLen);
-    ucDstAddr->ucMCInIndex++;
-    if(ucDstAddr->ucMCInIndex >= MaxNum)
+    if(g_stSysInf.ucNetCfgBuf[44] == 0)
     {
-      ucDstAddr->ucMCInIndex = 0;
+      ucDstAddr->usMCRxLen[ucDstAddr->ucMCInIndex] = usCopyLen - 3;
+      memcpy(ucDstAddr->ucMCRxBuf[ucDstAddr->ucMCInIndex],&ucSrcAddr->ucTcpRecBuf[3],usCopyLen-3);
     }
-    memset(g_stSysInf.ucTcpRecBuf,0x00,1024);
-    g_stSysInf.usTcpRecLen = 0;
-  }
+    else if(g_stSysInf.ucNetCfgBuf[44] == 2)
+    {
+      ucDstAddr->usMCRxLen[ucDstAddr->ucMCInIndex] = usCopyLen;
+      memcpy(ucDstAddr->ucMCRxBuf[ucDstAddr->ucMCInIndex],&ucSrcAddr->ucTcpRecBuf[0],usCopyLen);
+    }
+      ucDstAddr->ucMCInIndex++;
+      if(ucDstAddr->ucMCInIndex >= MaxNum)
+      {
+        ucDstAddr->ucMCInIndex = 0;
+      }
+      memset(g_stSysInf.ucTcpRecBuf,0x00,1024);
+      g_stSysInf.usTcpRecLen = 0;
+    }
+
 //  UART接收数据存入环形buf
-  else if(ucDataType == 2)
+  else if(ucDataType == DataType_UARTRec)
   {
     ucDstAddr->usUartRxLen[ucDstAddr->ucUartInIndex] = usCopyLen;
     memcpy(ucDstAddr->ucUartRxBuf[ucDstAddr->ucUartInIndex],ucSrcAddr->ucUartRxBuf,usCopyLen);
@@ -67,10 +76,10 @@ void CacheOutputProc(StSysInf *ucDstAddr,StCacheProc *ucSrcAddr,unsigned char uc
 //    M4接收buf清0
     memset(ucSrcAddr->ucMCRxBuf[ucSrcAddr->ucMCOutIndex],0x00,1024);
     //      DEBUG下发数据直接回发
-#if     TCDEBUG
-      g_stSysInf.usTcpTxLen = g_stCacheProc.usMCRxLen[g_stCacheProc.ucMCOutIndex];
-      TCP_HuiFa_zxz(g_stSysInf.usTcpTxLen,1);
-#endif
+//#if     TCDEBUG
+//      g_stSysInf.usTcpTxLen = g_stCacheProc.usMCRxLen[g_stCacheProc.ucMCOutIndex];
+//      TCP_HuiFa_zxz(g_stSysInf.usTcpTxLen,1);
+//#endif
 //    每拷贝一包数据，环形buf索引++
     ucSrcAddr->ucMCOutIndex++;
 //    如果接收buf到底，返回顶端
@@ -101,11 +110,11 @@ void DataProcess()
   if(g_stCacheProc.ucMCInIndex != g_stCacheProc.ucMCOutIndex)
   {
     watchDogFeed();
-    if(0 == g_stSysInf.ucUartBusyFlag)
+    if(0 == UARTBusy(DEF_UART_BASE))
     {
       CacheOutputProc(&g_stSysInf,&g_stCacheProc,0);
 //      g_stSysInf.ucUartBusyFlag = 1;
-//      DMA_SendData(g_stSysInf.ucUartTxBuf,g_stSysInf.usUartTxLen);
+      DMA_SendData(g_stSysInf.ucUartTxBuf,g_stSysInf.usUartTxLen);
       SysCtlDelay(g_stSysInf.ulSysClock/300);
     }
   }
