@@ -39,6 +39,8 @@ void Init()
   GPIOPinTypeGPIOOutput(GPIO_PORTH_BASE,GPIO_PIN_2||GPIO_PIN_3);
   
   SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOJ);
+  SysCtlPeripheralEnable(SYSCTL_PERIPH_UART3);
+  
   SysCtlPeripheralDisable(SYSCTL_PERIPH_GPIOM);
   //外部看门狗喂狗输出,未使用
 //  GPIOPadConfigSet(GPIO_PORTM_BASE, GPIO_PIN_7,
@@ -49,7 +51,7 @@ void Init()
 //  SysCtlPeripheralEnable(SYSCTL_PERIPH_UART0);
 //  SysCtlPeripheralEnable(SYSCTL_PERIPH_UART1);
 //  SysCtlPeripheralEnable(SYSCTL_PERIPH_UART2);
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_UART3);
+  
   SysCtlPeripheralEnable(SYSCTL_PERIPH_GPION);
   SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
   SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER1);   

@@ -9,7 +9,7 @@ TriggerName=main
 LimitSize=0
 ByteLimit=50
 [DebugChecksum]
-Checksum=400422043
+Checksum=1149330992
 [CodeCoverage]
 Enabled=_ 0
 [Exceptions]
@@ -45,14 +45,6 @@ Freq=10000000
 MultiCoreRunAll=1
 [JLinkDriver]
 CStepIntDis=_ 0
-[Disassemble mode]
-mode=0
-[Breakpoints2]
-Bp0=_ 1 "EMUL_CODE" "{$PROJ_DIR$\src\UARTFun.c}.104.12" 0 0 1 "" 0 "" 0
-Bp1=_ 1 "EMUL_CODE" "{$PROJ_DIR$\src\CmdProc.c}.115.7" 0 0 1 "" 0 "" 0
-Bp2=_ 1 "EMUL_CODE" "{$PROJ_DIR$\src\TCPProc.c}.149.7" 0 0 1 "" 0 "" 0
-Bp3=_ 1 "EMUL_CODE" "{$PROJ_DIR$\src\CmdProc.c}.35.7" 0 0 1 "" 0 "" 0
-Count=4
 [Log file]
 LoggingEnabled=_ 0
 LogFile=_ ""
@@ -60,9 +52,6 @@ Category=_ 0
 [TermIOLog]
 LoggingEnabled=_ 0
 LogFile=_ ""
-[Aliases]
-Count=0
-SuppressDialog=0
 [CallStackLog]
 Enabled=0
 [DriverProfiling]
@@ -71,3 +60,12 @@ Mode=0
 Graph=0
 Symbiont=0
 Exclusions=
+[Disassemble mode]
+mode=0
+[Breakpoints2]
+Bp0=_ 1 "EMUL_CODE" "{$PROJ_DIR$\src\Relink.c}.50.5" 0 0 1 "" 0 "" 0
+Count=1
+[Aliases]
+A0=_ "C:\DriverLib\build\DriverLib.test\driverlib\udma.c" "F:\Ñ§Ï°×ÊÁÏ\TM4\Project_Box2016-5-4\driverlib\udma.c"
+Count=1
+SuppressDialog=0

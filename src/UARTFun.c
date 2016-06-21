@@ -15,31 +15,29 @@ unsigned char UART_RX_Flag = 0;
 unsigned long UART_Mcenter_Count = 0;
 unsigned char Mcenter_C_RX = 0;
 unsigned long ulUartRxRealLen = 0;
-unsigned int uiShRecLen = 0;
-unsigned char uartMcenterEmpty = 0;
-unsigned long yjs_shuju_leng = 0;
+
 
 
 
 void UARTInit(void)
 {     
-  SysCtlPeripheralEnable(DEF_SYSCTL_PERIPH_UART);
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPION);   
-  GPIOPinTypeGPIOOutput(GPIO_PORTN_BASE, GPIO_PIN_4);		
+  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOJ);
+  SysCtlPeripheralEnable(DEF_SYSCTL_PERIPH_UART);    
+  GPIOPinTypeGPIOOutput(GPIO_PORTD_BASE, GPIO_PIN_0);		
   GPIOPinConfigure(GPIO_PJ0_U3RX);
   GPIOPinConfigure(GPIO_PJ1_U3TX);
   GPIOPinTypeUART(DEF_GPIO_PORT_BASE, GPIO_PIN_0|GPIO_PIN_1);  
   UARTConfigSetExpClk(DEF_UART_BASE,
                       g_stSysInf.ulSysClock ,
-                      115200,
+                      9600,
                       UART_CONFIG_WLEN_8 |
                         UART_CONFIG_STOP_ONE |
                           UART_CONFIG_PAR_NONE);
-  UARTFIFOLevelSet(DEF_UART_BASE, UART_FIFO_TX1_8, UART_FIFO_RX2_8);
+  UARTFIFOLevelSet(DEF_UART_BASE, UART_FIFO_TX1_8, UART_FIFO_RX1_8);
   UARTFIFOEnable(DEF_UART_BASE);
   UARTTxIntModeSet(DEF_UART_BASE,UART_TXINT_MODE_EOT);
   IntEnable(DEF_INT_UART);
-  UARTIntEnable(DEF_UART_BASE, UART_INT_RX | UART_INT_RT| UART_INT_TX);
+  UARTIntEnable(DEF_UART_BASE, UART_INT_RX | UART_INT_RT | UART_INT_DMATX);
   UARTDMAEnable(DEF_UART_BASE,UART_DMA_TX);
   IntPrioritySet(DEF_INT_UART, 0x20);
   UARTEnable(DEF_UART_BASE);
@@ -74,7 +72,7 @@ void DMA_SendData(unsigned char *ucBuf,unsigned short ulLen)
   uDMAChannelAttributeEnable(Uart_DMA_SecChannel, UDMA_ATTR_USEBURST);
   uDMAChannelControlSet(Uart_DMA_SecChannel | UDMA_PRI_SELECT,//通道号 
                         UDMA_SIZE_8 | UDMA_SRC_INC_8 |UDMA_DST_INC_NONE |//数据大小 源地址增量 目标地址增量 
-                          UDMA_ARB_4);//仲裁大小    
+                          UDMA_ARB_4);//仲裁大小
   uDMAChannelTransferSet(Uart_DMA_SecChannel | UDMA_PRI_SELECT,//通道号
                          UDMA_MODE_BASIC, ucBuf,//根据请求执行一个基本传输  该传输的源地址
                          (void *)(DEF_UART_BASE + UART_O_DR),//该传输的目标地址
@@ -95,22 +93,40 @@ void uDMAErrorHandler(void)
   }
 }
 
+//void uDMATransferHandler(void)
+//{
+//  unsigned long ulStatus;
+//  ulStatus=uDMAIntStatus();
+//  uDMAIntClear(ulStatus);
+//  if(GPIOPinRead(GPIO_PORTD_BASE,GPIO_PIN_0))
+//  GPIOPinWrite(GPIO_PORTD_BASE,GPIO_PIN_0,~GPIO_PIN_0);
+//}
+
 void UARTISR(void)
 {
   unsigned long ulStatus;  
   signed long ucChar;
   unsigned char tep= 0;
-  
+
+//  判断是哪个DMA通道出发中断，清中断
   ulStatus=uDMAIntStatus();
   uDMAIntClear(ulStatus);
-  if ((ulStatus & UDMA_DEF_USBEP1TX_SEC_UART2TX) == UDMA_DEF_USBEP1TX_SEC_UART2TX)        
+//  DMA发送中断
+  if ((ulStatus & UDMA_DEF_ADC03_SEC_RESERVED) == UDMA_DEF_ADC03_SEC_RESERVED)        
   {
     while(UARTBusy(DEF_UART_BASE));
-//    g_stSysInf.ucUartBusyFlag = 0;
-  }  
+//    RTC拉为接收
+    if(GPIOPinRead(GPIO_PORTD_BASE,GPIO_PIN_0))
+    GPIOPinWrite(GPIO_PORTD_BASE,GPIO_PIN_0,~GPIO_PIN_0);
+  }
   
   ulStatus = UARTIntStatus(DEF_UART_BASE, true);                
   UARTIntClear(DEF_UART_BASE, ulStatus); 
+  if(UART_RX_Timer >= 55 && g_stSysInf.usUartRxLen > 0)
+  {
+    CacheInputProc(&g_stCacheProc,&g_stSysInf,g_stSysInf.usUartRxLen,DataType_UARTRec);
+    UART_RX_Flag = 0;
+  }
   if((ulStatus & UART_INT_RX) || (ulStatus & UART_INT_RT)) 
   {
     UART_RX_Flag = 1; 
@@ -121,64 +137,7 @@ void UARTISR(void)
       {    
         UART_RX_Timer = 0;
         tep = (unsigned char)ucChar;
-        if(UART_RX_STATE == 0)
-        {
-          if(0xda == tep)
-          {
-            UART_RX_STATE = 1;
-          }
-        }
-        else if(UART_RX_STATE == 1)
-        {
-          if(0x90 == tep)
-          {
-            UART_RX_STATE = 2;
-          }
-          else
-          {
-            UART_RX_STATE = 0;
-          }                    
-        }
-        else if(UART_RX_STATE == 2)
-        {
-          if(0xda == tep)
-          {
-            UART_RX_STATE = 3;
-          }
-          else
-          {
-            UART_RX_STATE = 0;
-          }
-        }
-        else if(UART_RX_STATE == 3)
-        {
-          if(0x90 == tep)
-          {
-            UART_RX_STATE = 4;
-            g_stSysInf.usUartRxLen = 0;
-            memset(g_stSysInf.ucUartRxBuf,0x00,1024);
-          }
-          else
-          {
-            UART_RX_STATE = 0;
-          }
-        }
-        else if(UART_RX_STATE == 4)
-        {
-          g_stSysInf.ucUartRxBuf[g_stSysInf.usUartRxLen++] = tep;
-          
-          if(g_stSysInf.usUartRxLen >= 3)
-          {
-            ulUartRxRealLen = g_stSysInf.ucUartRxBuf[2];
-            ulUartRxRealLen |= g_stSysInf.ucUartRxBuf[1] << 8;
-          }
-          
-          if(g_stSysInf.usUartRxLen >= ulUartRxRealLen + 3)
-          {
-            UART_RX_STATE = 0;
-            CacheInputProc(&g_stCacheProc,&g_stSysInf,g_stSysInf.usUartRxLen,2);
-          }
-        }
+        g_stSysInf.ucUartRxBuf[g_stSysInf.usUartRxLen++] = tep;
       }
     }
   }

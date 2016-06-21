@@ -30,6 +30,7 @@
 #include "inc/hw_gpio.h"
 #include "inc/hw_timer.h"
 #include "inc/hw_watchdog.h"
+#include "inc/hw_udma.h"
 #include "utils/locator.h"
 #include "utils/lwiplib.h"
 #include "utils/uartstdio.h"
@@ -50,10 +51,9 @@
 
 
 #define DEF_UART_BASE             UART3_BASE
-#define DEF_SYSCTL_PERIPH_UART    SYSCTL_PERIPH_UART2
+#define DEF_SYSCTL_PERIPH_UART    SYSCTL_PERIPH_UART3
 #define DEF_GPIO_PORT_BASE        GPIO_PORTJ_BASE
-#define DEF_UART_GPIO_PIN         GPIO_PIN_4| GPIO_PIN_5
-#define DEF_INT_UART              INT_UART2			
+#define DEF_INT_UART              INT_UART3			
 
 #define	RS485_GPIO_PORT	    GPIO_PORTN_BASE	
 #define RS485_RE_DE         GPIO_PIN_2
@@ -61,8 +61,8 @@
 #define FLAG_SYSTICK            	0
 #define LOGIN_WEB_TICK    				25000
 
-#define Uart_DMA_Channel        UDMA_CH1_UART2TX
-#define Uart_DMA_SecChannel     UDMA_SEC_CHANNEL_UART2TX_1
+#define Uart_DMA_Channel        UDMA_CH17_UART3TX
+#define Uart_DMA_SecChannel     UDMA_SEC_CHANNEL_UART3TX_17
 /***********Functions**************/
 ///watchDog
 extern void watchDogInit(unsigned long ulValue);
@@ -103,8 +103,6 @@ extern unsigned char UART_TX_temp[1024];
 extern unsigned char UART_RX_STATE;
 extern unsigned long UART_Mcenter_Count;
 extern unsigned char UART_Mcenter_temp[1024];
-extern unsigned int uiShRecLen;
-extern unsigned char uartMcenterEmpty;
 extern unsigned short Ser_RX_len; 
 extern unsigned char g_ucWebRestart;
 extern unsigned char g_ucUDPNetRestart;
@@ -124,3 +122,4 @@ extern unsigned long ulUartRxRealLen;
 
 #define DataType_EthRec         0
 #define DataType_UARTRec        2
+

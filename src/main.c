@@ -138,7 +138,7 @@ void main()
   Init();
   while(1)
   {
-    if(g_ucLedBlinktick == 500)
+    if(g_ucLedBlinktick >= 500)
     {
       g_ucLedBlinktick = 0;
       g_ucLedBlink=~g_ucLedBlink;

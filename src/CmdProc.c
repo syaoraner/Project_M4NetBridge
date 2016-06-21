@@ -114,12 +114,20 @@ void DataProcess()
     {
       CacheOutputProc(&g_stSysInf,&g_stCacheProc,0);
 //      g_stSysInf.ucUartBusyFlag = 1;
+//      拉RTC到发送
+      GPIOPinWrite(GPIO_PORTD_BASE,GPIO_PIN_0,GPIO_PIN_0);
       DMA_SendData(g_stSysInf.ucUartTxBuf,g_stSysInf.usUartTxLen);
-      SysCtlDelay(g_stSysInf.ulSysClock/300);
+//      SysCtlDelay(g_stSysInf.ulSysClock/300);      
     }
   }
   
   ///M4-->上行
+//  达到数据包最小间隔时间且串口接收缓存有数据，则将数据移至环形buf
+  if(UART_RX_Timer >= 55 && g_stSysInf.usUartRxLen > 0)
+  {
+    CacheInputProc(&g_stCacheProc,&g_stSysInf,g_stSysInf.usUartRxLen,DataType_UARTRec);
+    UART_RX_Flag = 0;
+  }
   if(g_stCacheProc.ucUartInIndex != g_stCacheProc.ucUartOutIndex)
   {
     watchDogFeed();
@@ -127,9 +135,8 @@ void DataProcess()
     if(g_stCacheProc.ucUartRxBuf[g_stCacheProc.ucUartOutIndex][0] != 3)
     {
       CacheOutputProc(&g_stSysInf,&g_stCacheProc,2);
-      TCP_HuiFa_zxz(g_stSysInf.usTcpTxLen,g_stSysInf.ucTcpTxBuf[0]);
-      SysCtlDelay(g_stSysInf.ulSysClock/30);
-      SysCtlDelay(g_stSysInf.ulSysClock/30);
+      TCP_HuiFa_zxz(g_stSysInf.usTcpTxLen,g_stSysInf.ucTcpTxBuf);
+//      SysCtlDelay(g_stSysInf.ulSysClock/3000);
     }
     else
     {
@@ -137,22 +144,28 @@ void DataProcess()
   }
 }
 
-
-void TCP_HuiFa_zxz(unsigned short usLen,unsigned char ucFlag)
+//--------------------------------------------------------------------------------
+//TCP转发数据，根据模式判断加不加0xfa 0x01 0x01帧头
+//--------------------------------------------------------------------------------
+void TCP_HuiFa_zxz(unsigned short usLen,unsigned char *p_ucTcpTxBuf)
 {
   unsigned long temp_n = 1;
   if((usLen >0 ) && (usLen <1024 ))
   {
-    if((ucFlag == 1) && (g_stSysInf.ucTCPConFlag == 1))//
+    if(g_stSysInf.ucTCPConFlag == 1)//
     {  
       TCP_TxLen = 0;
-      TCP_TxBuf[TCP_TxLen++] = 0xfa;
-      TCP_TxBuf[TCP_TxLen++] = 0x01;
-      TCP_TxBuf[TCP_TxLen++] = 0x01;
+//      如果使用控件，加帧头
+      if(g_stSysInf.ucNetCfgBuf[44] == 0)
+      {
+        TCP_TxBuf[TCP_TxLen++] = 0xfa;
+        TCP_TxBuf[TCP_TxLen++] = 0x01;
+        TCP_TxBuf[TCP_TxLen++] = 0x01;
+      }      
       for(temp_n = 0;temp_n < usLen;temp_n++)
       {
-        TCP_TxBuf[TCP_TxLen++] = g_stSysInf.ucUartTxBuf[temp_n];
-        if(g_stSysInf.ucUartTxBuf[temp_n] == 0xfa)
+        TCP_TxBuf[TCP_TxLen++] = p_ucTcpTxBuf[temp_n];
+        if(p_ucTcpTxBuf[temp_n] == 0xfa)
         {
           TCP_TxBuf[TCP_TxLen++] = 0x00;        
         }
@@ -160,8 +173,7 @@ void TCP_HuiFa_zxz(unsigned short usLen,unsigned char ucFlag)
       tcp_write(g_stSysInf.MCClipcb, TCP_TxBuf,TCP_TxLen,1);
       tcp_output(g_stSysInf.MCClipcb);
       memset(TCP_TxBuf,0x00,1024);
-    }
-    
+    }    
     else
     {
     }

@@ -7,7 +7,7 @@
 //-------------------------------------------------------------------------------
 void TCP_Relink(void)
 {
-  unsigned char ucLinkState = 1;
+  unsigned char ucLineConnetcState = 1;
   unsigned char ucStateBuf[10] = {0};
   unsigned char ucReadCnt = 0;
   unsigned int i = 0;
@@ -21,27 +21,27 @@ void TCP_Relink(void)
     }
     if(ucReadCnt >=10)
     {
-      ucLinkState=0;
+      ucLineConnetcState=0;
       for(ucReadCnt=0;ucReadCnt<10;ucReadCnt++)
       {
         if(ucStateBuf[ucReadCnt])
         {
-          ucLinkState++;
+          ucLineConnetcState++;
         }
       }
-      if(ucLinkState <= 3)
+      if(ucLineConnetcState <= 3)
       {
-        ucLinkState=0;
+        ucLineConnetcState=0;
       }
       else
       {
-        ucLinkState = 0x01;
+        ucLineConnetcState = 0x01;
       }
       ucReadCnt=0;
     }
   }
-  
-  if(ucLinkState == 0x01)
+//  如果网线连接正常，则判断网络连接，如果未连接，则间歇性重连
+  if(ucLineConnetcState == 0x01)
   {
     TCP_MCenter_Relink(g_stSysInf.ucMCReLinkFlag);
   }
