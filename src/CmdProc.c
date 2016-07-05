@@ -60,7 +60,7 @@ void CacheInputProc(StCacheProc *ucDstAddr,StSysInf *ucSrcAddr,
 //用于从环形buf搬出数据
 //@param  *ucDstAddr      目标地址指针
 //@param  *ucSrcAddr      源地址指针
-//@param  ucDataType      数据传输的方向 0——MC到M4，2——M4回发MC
+//@param  ucDataType      数据传输的方向 0——M4到485，2——M4回发MC
 //--------------------------------------------------------------------------------
 void CacheOutputProc(StSysInf *ucDstAddr,StCacheProc *ucSrcAddr,unsigned char ucDataType)
 {
@@ -106,6 +106,16 @@ void CacheOutputProc(StSysInf *ucDstAddr,StCacheProc *ucSrcAddr,unsigned char uc
 //-----------------------------------------------------------------------
 void DataProcess()
 {
+	
+//  达到数据包最小间隔时间且串口接收缓存有数据，则将数据移至环形buf
+  if(UART_RX_Timer >= 20 && g_stSysInf.usUartRxLen > 0)
+  {
+//    UARTIntDisable(DEF_UART_BASE, UART_INT_RX | UART_INT_RT | UART_INT_DMATX);
+    CacheInputProc(&g_stCacheProc,&g_stSysInf,g_stSysInf.usUartRxLen,DataType_UARTRec);
+//    UARTIntEnable(DEF_UART_BASE, UART_INT_RX | UART_INT_RT | UART_INT_DMATX);
+    UART_RX_Flag = 0;
+  }
+  
   ///M4-->下行
   if(g_stCacheProc.ucMCInIndex != g_stCacheProc.ucMCOutIndex)
   {
@@ -117,17 +127,11 @@ void DataProcess()
 //      拉RTC到发送
       GPIOPinWrite(GPIO_PORTD_BASE,GPIO_PIN_0,GPIO_PIN_0);
       DMA_SendData(g_stSysInf.ucUartTxBuf,g_stSysInf.usUartTxLen);
+//      DMA数据发完进入中断，将RTC拉到接收
 //      SysCtlDelay(g_stSysInf.ulSysClock/300);      
     }
-  }
-  
+  }  
   ///M4-->上行
-//  达到数据包最小间隔时间且串口接收缓存有数据，则将数据移至环形buf
-  if(UART_RX_Timer >= 55 && g_stSysInf.usUartRxLen > 0)
-  {
-    CacheInputProc(&g_stCacheProc,&g_stSysInf,g_stSysInf.usUartRxLen,DataType_UARTRec);
-    UART_RX_Flag = 0;
-  }
   if(g_stCacheProc.ucUartInIndex != g_stCacheProc.ucUartOutIndex)
   {
     watchDogFeed();

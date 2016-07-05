@@ -33,13 +33,13 @@ void UARTInit(void)
                       UART_CONFIG_WLEN_8 |
                         UART_CONFIG_STOP_ONE |
                           UART_CONFIG_PAR_NONE);
-  UARTFIFOLevelSet(DEF_UART_BASE, UART_FIFO_TX1_8, UART_FIFO_RX1_8);
+  UARTFIFOLevelSet(DEF_UART_BASE, UART_FIFO_TX1_8, UART_FIFO_RX4_8);
   UARTFIFOEnable(DEF_UART_BASE);
   UARTTxIntModeSet(DEF_UART_BASE,UART_TXINT_MODE_EOT);
   IntEnable(DEF_INT_UART);
   UARTIntEnable(DEF_UART_BASE, UART_INT_RX | UART_INT_RT | UART_INT_DMATX);
   UARTDMAEnable(DEF_UART_BASE,UART_DMA_TX);
-  IntPrioritySet(DEF_INT_UART, 0x20);
+  IntPrioritySet(DEF_INT_UART, 0x04);
   UARTEnable(DEF_UART_BASE);
 }
 
@@ -78,7 +78,6 @@ void DMA_SendData(unsigned char *ucBuf,unsigned short ulLen)
                          (void *)(DEF_UART_BASE + UART_O_DR),//该传输的目标地址
                          ulLen);//该传输的数据大小
   uDMAChannelEnable(Uart_DMA_SecChannel);//开始传输
-  
 }
 
 void uDMAErrorHandler(void)
@@ -122,20 +121,20 @@ void UARTISR(void)
   
   ulStatus = UARTIntStatus(DEF_UART_BASE, true);                
   UARTIntClear(DEF_UART_BASE, ulStatus); 
-  if(UART_RX_Timer >= 55 && g_stSysInf.usUartRxLen > 0)
-  {
-    CacheInputProc(&g_stCacheProc,&g_stSysInf,g_stSysInf.usUartRxLen,DataType_UARTRec);
-    UART_RX_Flag = 0;
-  }
+//  if(UART_RX_Timer >= 55 && g_stSysInf.usUartRxLen > 0)
+//  {
+//    CacheInputProc(&g_stCacheProc,&g_stSysInf,g_stSysInf.usUartRxLen,DataType_UARTRec);
+//    UART_RX_Flag = 0;
+//  }
   if((ulStatus & UART_INT_RX) || (ulStatus & UART_INT_RT)) 
   {
     UART_RX_Flag = 1; 
+    UART_RX_Timer = 0;
     while(UARTCharsAvail(DEF_UART_BASE))//空不空
     {
       ucChar = UARTCharGet(DEF_UART_BASE);
       if(ucChar != -1)
       {    
-        UART_RX_Timer = 0;
         tep = (unsigned char)ucChar;
         g_stSysInf.ucUartRxBuf[g_stSysInf.usUartRxLen++] = tep;
       }

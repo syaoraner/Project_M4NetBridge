@@ -608,7 +608,7 @@
         </option>
         <option>
           <name>OOCOutputFile</name>
-          <state>PLC-NetBri.bin</state>
+          <state>M4_Netbridge.bin</state>
         </option>
         <option>
           <name>OOCCommandLineProducer</name>
@@ -1902,37 +1902,7 @@
   <group>
     <name>lib</name>
     <file>
-      <name>$PROJ_DIR$\..\driverlib\cpu.c</name>
-    </file>
-    <file>
       <name>$PROJ_DIR$\..\driverlib\ewarm\Exe\driverlib.a</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\driverlib\emac.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\driverlib\flash.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\driverlib\gpio.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\driverlib\interrupt.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\driverlib\sysctl.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\driverlib\systick.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\driverlib\timer.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\driverlib\uart.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\driverlib\watchdog.c</name>
     </file>
   </group>
   <group>
@@ -1956,7 +1926,7 @@
       <name>$PROJ_DIR$\src\Relink.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\src\save.c</name>
+      <name>$PROJ_DIR$\..\Project_M4NetBridge_FreeRTOS\src\save.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\src\startup_ewarm.c</name>
